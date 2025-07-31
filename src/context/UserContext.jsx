@@ -31,6 +31,7 @@ export const UserProvider = ({ children }) => {
        */
       const res = await axios.get(import.meta.env.VITE_API_URL + "/auth/get-user", {
         withCredentials: true,
+        headers: { "Content-Type": "application/json" }
       });
       
       /**
