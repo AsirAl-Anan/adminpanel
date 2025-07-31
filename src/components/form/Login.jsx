@@ -18,11 +18,11 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   // Redirect if already logged in
-  // useEffect(() => {
-  //   if (user) {
-  //     navigate('/');
-  //   }
-  // }, [user, navigate]);
+   useEffect(() => {
+     if (user) {
+       navigate('/');
+     }
+   }, [user, navigate]);
 
   const handleInputChange = (e) => {
     setFormData({
@@ -54,10 +54,7 @@ export default function LoginPage() {
       toast.error(error.response?.data?.message || 'An error occurred during login');
     }
   };
-if(user){
-  navigate('/');
-  return null; // Don't render the login page if user is already logged in
-}
+
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <ToastContainer />

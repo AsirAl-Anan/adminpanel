@@ -8,19 +8,17 @@ const Home = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
-  // console.log("User in Home:", user);
-  // useEffect(() => {
-  //   // Redirect to login if user is not logged in or is not an admin
-  //   if (!user ) {
-  //     navigate('/login');
-  //   }
-  // }, []);
 
-   // Don't render anything if user is not authenticated
-   if (!user) {
-     navigate('/login');
-     return null;
-   }
+  // Check auth on mount
+  useEffect(() => {
+    if (user === null) return; // still loading user
+    if (!user) navigate('/login');
+  }, [user, navigate]);
+
+  if (user === undefined || user === null) {
+    // Show nothing or a loading spinner while checking auth
+    return <div className="p-6 text-center">Loading...</div>;
+  }
 
   return (
     <div className="h-screen bg-gray-50">
@@ -42,7 +40,7 @@ const Home = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;
