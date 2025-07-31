@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply font-sans 
+}
+.cke {
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: #fff;
+}
+
+.cke_top {
+  background: #f7f7f7 !important;
+  border-bottom: 1px solid #ddd;
+}
+
+.cke_contents {
+  background: white;
+  font-size: 16px;
+  padding: 12px;
+  font-family: 'Segoe UI', sans-serif;
+}
