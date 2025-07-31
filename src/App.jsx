@@ -1,6 +1,6 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
-import Home from "./Pages/Home"
-import Login from "./components/Form/Login"
+import Home from "./pages/Home"
+import Login from "./components/form/Login"
 import Chat from "./pages/subpages/Chat"
 import AddCreativeQuestionPage from "./pages/subpages/AddCq"
 import CKEditor4 from "./pages/subpages/CKEditor"
