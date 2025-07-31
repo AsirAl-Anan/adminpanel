@@ -1,7 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 import axios from "axios";
 
-
 export const UserContext = createContext();
 
 /**
@@ -15,9 +14,11 @@ export const UserContext = createContext();
  */
 export const UserProvider = ({ children }) => {
   /**
-   * The user data.
+   * The user data. 
+   * null = loading, false = not authenticated, object = authenticated user
    */
   const [user, setUser] = useState(null);
+
   /**
    * Fetches the user data from the server.
    */
@@ -31,23 +32,27 @@ export const UserProvider = ({ children }) => {
       const res = await axios.get(import.meta.env.VITE_API_URL + "/auth/get-user", {
         withCredentials: true,
       });
+      
       /**
        * Checks if the response is successful and if the user data is in the response.
-       * If the response is not successful or the user data is not in the response,
-       * the function does not update the user state.
+       * If successful, update user state with the user data.
+       * If not successful, set user to false (not authenticated).
        */
-      if (res?.data?.success !== true) return;
-      /**
-       * Updates the user state with the user data from the response.
-       */
-      setUser(res?.data?.admin);
+      if (res?.data?.success === true && res?.data?.admin) {
+        setUser(res.data.admin);
+      } else {
+        setUser(false); // Not authenticated
+      }
     } catch (error) {
       /**
-       * Logs the error to the console if there is an error while fetching the user data.
+       * If there's an error (like 401 Unauthorized), set user to false
+       * to indicate the user is not authenticated.
        */
       console.log("error while fetching user: ", error);
+      setUser(false); // Not authenticated
     }
   };
+
   /**
    * Uses the useEffect hook to fetch the user data when the component mounts.
    * The useEffect hook takes a function as an argument, which is the effect to run.
@@ -55,10 +60,9 @@ export const UserProvider = ({ children }) => {
    * In this case, the effect runs when the component mounts, because the dependencies array is empty.
    */
   useEffect(() => {
-    if (!user) {
-      fetchUser();
-    }
+    fetchUser();
   }, []);
+
   /**
    * The value object that is provided to the context.
    * The value object contains the user data and a function to update the user data.
@@ -67,10 +71,10 @@ export const UserProvider = ({ children }) => {
     user,
     setUser,
   };
+
   return (
     <UserContext.Provider value={value}>
       {children}
     </UserContext.Provider>
   );
 };
-

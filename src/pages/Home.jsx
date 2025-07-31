@@ -3,7 +3,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import Navbar from "../components/common/Navbar";
 import Sidebar from "../components/common/Sidebar";
 import { UserContext } from '../context/UserContext';
-
+import {FadeLoader} from 'react-spinners';
 const Home = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useContext(UserContext);
@@ -17,7 +17,7 @@ const Home = () => {
 
   if (user === undefined || user === null) {
     // Show nothing or a loading spinner while checking auth
-    return <div className="p-6 text-center">Loading...</div>;
+    return <div className='flex justify-center items-center h-screen'> <FadeLoader color="#36d7b7" /></div>
   }
 
   return (
