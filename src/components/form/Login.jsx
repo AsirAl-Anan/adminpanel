@@ -40,7 +40,7 @@ export default function LoginPage() {
         formData, 
         { withCredentials: true }
       );
-      
+      console.log("in login",res)
       if (res.data.success) {
         setUser(res.data.response);
         toast.success('Login successful!');
@@ -51,6 +51,7 @@ export default function LoginPage() {
         toast.error(res.data.message || 'Login failed');
       }
     } catch (error) {
+      console.error("Login error:", error);
       toast.error(error.response?.data?.message || 'An error occurred during login');
     }
   };
