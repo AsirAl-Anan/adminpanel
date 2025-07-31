@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext.jsx';
@@ -10,6 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 export default function LoginPage() {
   const { user, setUser } = useContext(UserContext);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -33,6 +34,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     
     try {
      const res = await axios.post(
@@ -54,6 +56,8 @@ export default function LoginPage() {
     } catch (error) {
       console.error("Login error:", error);
       toast.error(error.response?.data?.message || 'An error occurred during login');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -74,8 +78,18 @@ export default function LoginPage() {
         {/* Form Container with Modern Glass Effect */}
         <form 
           onSubmit={handleSubmit}
-          className="bg-white/10 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-white/20"
+          className="bg-white/10 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-white/20 relative"
         >
+          {/* Loading Overlay */}
+          {isLoading && (
+            <div className="absolute inset-0 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
+              <div className="text-center">
+                <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-3" />
+                <p className="text-gray-800 font-medium">Signing you in...</p>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-6">
             {/* Email Field */}
             <div className="space-y-2">
@@ -90,7 +104,8 @@ export default function LoginPage() {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full pl-12 pr-4 py-3 bg-white/30 backdrop-blur-sm border border-white/40 rounded-lg text-gray-900 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  disabled={isLoading}
+                  className="w-full pl-12 pr-4 py-3 bg-white/30 backdrop-blur-sm border border-white/40 rounded-lg text-gray-900 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="Enter your email"
                   required
                 />
@@ -110,14 +125,16 @@ export default function LoginPage() {
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full pl-12 pr-12 py-3 bg-white/30 backdrop-blur-sm border border-white/40 rounded-lg text-gray-900 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  disabled={isLoading}
+                  className="w-full pl-12 pr-12 py-3 bg-white/30 backdrop-blur-sm border border-white/40 rounded-lg text-gray-900 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="Enter your password"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                  disabled={isLoading}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -131,7 +148,8 @@ export default function LoginPage() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  disabled={isLoading}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-800">
                   Remember me
@@ -140,7 +158,8 @@ export default function LoginPage() {
               <div className="text-sm">
                 <button
                   type="button"
-                  className="text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200"
+                  disabled={isLoading}
+                  className="text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Forgot password?
                 </button>
@@ -150,9 +169,17 @@ export default function LoginPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95"
+              disabled={isLoading}
+              className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-blue-600 flex items-center justify-center gap-2"
             >
-              Sign In
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Signing In...
+                </>
+              ) : (
+                'Sign In'
+              )}
             </button>
           </div>
         </form>
