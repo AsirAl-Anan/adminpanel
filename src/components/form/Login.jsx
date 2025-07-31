@@ -35,11 +35,12 @@ export default function LoginPage() {
     e.preventDefault();
     
     try {
-      const res = await axios.post(
-        import.meta.env.VITE_API_URL + "/auth/login", 
-        formData, 
-        { withCredentials: true }
-      );
+     const res = await axios.post(
+  import.meta.env.VITE_API_URL + "/auth/login",
+  JSON.stringify(formData),
+  { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
+);
+
       console.log("in login",res)
       if (res.data.success) {
         setUser(res.data.response);
