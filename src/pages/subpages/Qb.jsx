@@ -494,8 +494,12 @@ const QuestionBankPage = () => {
                                   <div className="ml-7 p-2 bg-green-50 border border-green-200 rounded-lg">
                                     <div className="text-[10px] text-green-600 font-medium mb-0.5">Answer:</div>
                                     <div className="text-xs text-green-800 whitespace-pre-line"><LatexRenderer latex={truncateText(question.dAnswer, 100)} /> </div>
+                                    {question?.dAnswerImage && 
+                                     ( <div className="flex justify-center"> <img src={question.cAnswerImage} alt="Answer Image" className="mt-4 rounded-lg " /> </div> )
+                                    }
                                   </div>
-                                )}
+                               
+                               )}
                               </div>
                             )}
                           </div>
