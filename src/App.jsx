@@ -9,6 +9,7 @@ import SubjectsPage from "./pages/subpages/Subject"
 import Qb from "./pages/subpages/Qb"
 import Dashboard from "./pages/subpages/Dashboard"
 import UnderConstruction from "./pages/errors/UnderConstruction"
+import ViewQuestion from "./pages/subpages/ViewQuestion"
 const router = createBrowserRouter([
   {
     path: "/",
@@ -31,10 +32,13 @@ const router = createBrowserRouter([
         element: <SubjectsPage />
       }, 
       {
-        path: "/questions/:level/:group/:subjectId",
+        path: "/questions/:level/:group/:subjectId",     //curent page with all questions 
         element: <Qb />
       },
-      
+       {
+        path: "/questions/:level/:group/:subjectId/:questionId", //required page to view and edit a single question
+        element: <ViewQuestion />
+      },
        
       
       

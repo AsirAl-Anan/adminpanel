@@ -701,7 +701,6 @@ const AddCreativeQuestionPage = () => {
       bTopic: '',
       bSubTopic: '',
     });
-    setImagePreview(null);
     setErrors({});
     setStep(0);
     setDynamicSubjects([]);
@@ -840,14 +839,7 @@ const AddCreativeQuestionPage = () => {
       }
   
 
-    //    formData.set('stemImage', stemImage);
-      
-    //   formData.set('cAnswerImage', cAnswerImage);
-    //   formData.set('dAnswerImage', dAnswerImage);
-    // formData.set('stemImage', banglaStemImage);
-    //         formData.set('cAnswerImage', cAnswerImageBangla);
-    //   formData.set('dAnswerImage', dAnswerImageBangla);
-    //form data needs to be set
+
       const englishQuestionAnswerDataForUpload = new FormData();
       englishQuestionAnswerDataForUpload.append('uniqueKey', uniqueKey);
       englishQuestionAnswerDataForUpload.append('stem', formData.stem);
@@ -1111,85 +1103,7 @@ if(dAnswerImageBangla){
 }
 
 banglaQuestionAnswerDataForUpload.append('isOwn', true);
-      const banglaSubmissionData = {
-        uniqueKey: uniqueKey,
-        stem: formData.banglaStem,
-        a: formData.banglaA,
-        aAnswer: formData.banglaAAnswer,
-        aCommon: formData.aCommon,
-        aTopic: selectedATopicObj
-          ? {
-              topicId: selectedATopicObj._id,
-              englishName: selectedATopicObj.englishName,
-              banglaName: selectedATopicObj.banglaName,
-            }
-          : undefined,
-        b: formData.banglaB,
-        bAnswer: formData.banglaBAnswer,
-        bCommon: formData.bCommon,
-        bTopic: selectedBTopicObj
-          ? {
-              topicId: selectedBTopicObj._id,
-              englishName: selectedBTopicObj.englishName,
-              banglaName: selectedBTopicObj.banglaName,
-            }
-          : undefined,
-        bSubTopic: selectedBSubTopicObj
-          ? {
-              topicId: selectedBSubTopicObj._id,
-              englishName: selectedBSubTopicObj.englishName,
-              banglaName: selectedBSubTopicObj.banglaName,
-            }
-          : undefined,
-        c: formData.banglaC,
-        cAnswer: formData.banglaCAnswer,
-        cTopic: selectedCTopicObj
-          ? {
-              topicId: selectedCTopicObj._id,
-              englishName: selectedCTopicObj.englishName,
-              banglaName: selectedCTopicObj.banglaName,
-            }
-          : undefined,
-        cSubTopic: selectedCSubTopicObj
-          ? {
-              topicId: selectedCSubTopicObj._id,
-              englishName: selectedCSubTopicObj.englishName,
-              banglaName: selectedCSubTopicObj.banglaName,
-            }
-          : undefined,
-        d: formData.banglaD || undefined,
-        dAnswer: formData.banglaDAnswer || undefined,
-        dTopic: selectedDTopicObj && formData.d
-          ? {
-              topicId: selectedDTopicObj._id,
-              englishName: selectedDTopicObj.englishName,
-              banglaName: selectedDTopicObj.banglaName,
-            }
-          : undefined,
-        dSubTopic: selectedDSubTopicObj && formData.d
-          ? {
-              topicId: selectedDSubTopicObj._id,
-              englishName: selectedDSubTopicObj.englishName,
-              banglaName: selectedDSubTopicObj.banglaName,
-            }
-          : undefined,
-        difficulty: formData.difficulty,
-        group: formData.group,
-        board: formData.board,
-        institution: formData.institution,
-        year: parseInt(formData.year, 10),
-        subject: formData.subject,
-        level: formData.level,
-        version: "Bangla",
-        chapter: selectedChapterObj
-          ? {
-              chapterId: selectedChapterObj._id,
-              englishName: selectedChapterObj.englishName,
-              banglaName: selectedChapterObj.banglaName,
-            }
-          : undefined,
-      };
-  
+      
       const englishResponse = await axios.post('/qb', englishQuestionAnswerDataForUpload, {
         headers: {
           'Content-Type': 'multipart/form-data',

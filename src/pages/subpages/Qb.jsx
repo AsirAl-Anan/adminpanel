@@ -16,6 +16,7 @@ import {
   ChevronUp,
   Menu,
 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import axios from '../../config/axios.js';
@@ -48,6 +49,8 @@ const QuestionBankPage = () => {
     fetchQuestions();
   }, []);
   // Filter states
+  const location = useLocation();
+  console.log("Location:", location);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBoard, setSelectedBoard] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
@@ -371,7 +374,7 @@ const QuestionBankPage = () => {
               <div className="grid gap-3">
                 {filteredQuestions?.map((question) => (
                   <div
-                    key={question._id}
+                    key={question?._id}
                     className={`bg-white rounded-lg shadow-sm border transition-all duration-200 hover:shadow-md ${
                       question.isNew ? 'border-blue-200 bg-blue-50/30' :
                         question.isRecent ? 'border-green-200 bg-green-50/30' : 'border-gray-100'
@@ -398,9 +401,12 @@ const QuestionBankPage = () => {
                             </span>
                             {/* Action Buttons */}
                         <div className="flex items-center gap-1 ml-2 flex-shrink-0">
-                          <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
-                            <Edit size={14} />
-                          </button>
+                          <NavLink
+  to={`${location.pathname}/${question._id}`}
+  className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+>
+  <Edit size={14} />
+</NavLink>
                           <button className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200">
                             <Trash2 size={14} />
                           </button>
