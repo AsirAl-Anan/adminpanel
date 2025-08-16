@@ -1165,7 +1165,7 @@ banglaQuestionAnswerDataForUpload.append('isOwn', true);
         isLoading={isImageUploadLoading}
         title="Upload Question Images"
         buttonText="Generate Question"
-        maxImages={3}
+        maxImages={6}
         formDataKey="qb"
       />
       <AnswerUploadModal
@@ -1175,7 +1175,7 @@ banglaQuestionAnswerDataForUpload.append('isOwn', true);
         isLoading={isAnswerUploadLoading}
         title="Upload Answer Images"
         buttonText="Generate Answers"
-        maxImages={3}
+        maxImages={6}
         formDataKey="qb"
       />
       <div className="content-wrapper">
