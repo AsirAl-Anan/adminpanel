@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Upload, Save, RotateCcw, BookOpen, Image, Plus, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, Save, RotateCcw, BookOpen, Image, Plus, X, Loader2, CheckCircle, AlertCircle, ArrowLeftIcon } from 'lucide-react';
 import LatexRenderer from './LatexRenderer';
 import "../../css/AddCq.css";
 import 'katex/dist/katex.min.css';
@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"; // Import toast styles
 import { useMemo } from 'react';
 import axios from '../../config/axios.js';
+import { useNavigate } from 'react-router-dom';
 // --- Modal Component for Image Upload (Tailwind Styled) ---
 const ImageUploadModal = ({
   isOpen,
@@ -159,6 +160,7 @@ const ImageUploadModal = ({
 };
 const AnswerUploadModal = (props) => <ImageUploadModal {...props} />;
 const AddCreativeQuestionPage = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     stem: '',
     a: '',
@@ -1151,6 +1153,9 @@ banglaQuestionAnswerDataForUpload.append('isOwn', true);
     if (step === 5) return "Add Bangla Answer";
     return "";
   };
+  const handleGoBack =()=>{
+    navigate(-1);
+  }
   return (
     <div className="page-container w-full">
       <ImageUploadModal
@@ -1174,6 +1179,8 @@ banglaQuestionAnswerDataForUpload.append('isOwn', true);
         formDataKey="qb"
       />
       <div className="content-wrapper">
+                  <button onClick={handleGoBack} className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-8 flex p-4 align-baseline'> <ArrowLeftIcon></ArrowLeftIcon> Go back</button>
+
         <div className="header">
           <div className="header-badge">
             <BookOpen className="header-icon" />

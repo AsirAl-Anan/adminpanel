@@ -2,28 +2,31 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Search, BookOpen, Calculator, Globe, Users, Beaker, TrendingUp, PenTool, Filter, ArrowRight } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import axios from "../../config/axios.js";
+import { ClipLoader } from 'react-spinners';
 
 const SubjectsPage = () => {
-  const [activeLevel, setActiveLevel] = useState('HSC'); // Default level
+  const [activeLevel, setActiveLevel] = useState('HSC');
   const [selectedGroup, setSelectedGroup] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
-  const [languageMode, setLanguageMode] = useState('both'); // 'both', 'english', 'bangla'
+  const [languageMode, setLanguageMode] = useState('both');
   const [error, setError] = useState('');
   const [subjects, setSubjects] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch subjects from API
   const fetchSubjects = async () => {
     try {
+      setLoading(true);
       const res = await axios.get('/subject');
       
       if (res?.data?.success !== true) {
         setError(res?.data?.message);
         return;
       }
-      console.log(res.data.data)
       setSubjects(res.data.data);
     } catch (err) {
       setError('Failed to fetch subjects');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -31,7 +34,6 @@ const SubjectsPage = () => {
     fetchSubjects();
   }, []);
 
-  // Get icon based on group
   const getIcon = (group) => {
     const icons = {
       science: Beaker,
@@ -41,7 +43,6 @@ const SubjectsPage = () => {
     return icons[group.toLowerCase()] || BookOpen;
   };
 
-  // Get group color based on group
   const getGroupColor = (group) => {
     const colors = {
       science: 'bg-emerald-50 border-emerald-200 text-emerald-800',
@@ -51,21 +52,17 @@ const SubjectsPage = () => {
     return colors[group.toLowerCase()] || 'bg-gray-50 border-gray-200 text-gray-800';
   };
 
-  // Filter and search logic
   const filteredSubjects = useMemo(() => {
     let subjectsList = [...subjects];
 
-    // Filter by level (THIS WAS MISSING!)
     subjectsList = subjectsList.filter(subject => 
       subject.level.toUpperCase() === activeLevel.toUpperCase()
     );
 
-    // Filter by group
     if (selectedGroup !== 'All') {
       subjectsList = subjectsList.filter(subject => subject.group.toLowerCase() === selectedGroup.toLowerCase());
     }
 
-    // Filter by search term
     if (searchTerm) {
       subjectsList = subjectsList.filter(subject =>
         subject.englishName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -75,14 +72,25 @@ const SubjectsPage = () => {
     }
 
     return subjectsList;
-  }, [subjects, activeLevel, selectedGroup, searchTerm]); // Added activeLevel to dependencies
+  }, [subjects, activeLevel, selectedGroup, searchTerm]);
 
-  // Get subjects for current level only (for stats)
   const currentLevelSubjects = useMemo(() => {
     return subjects.filter(subject => 
       subject.level.toUpperCase() === activeLevel.toUpperCase()
     );
   }, [subjects, activeLevel]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
+        <ClipLoader 
+          color="#3B82F6" 
+          size={60} 
+          speedMultiplier={0.8}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 font-sans">
@@ -237,6 +245,13 @@ const SubjectsPage = () => {
                 {/* Card Footer */}
                 <div className="px-6 pb-6">
                   <div className="mb-4">
+                    <NavLink
+                      to={`/subject/${subject._id}`}
+                      className="inline-flex my-4 items-center justify-center w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 shadow-md hover:shadow-lg group/button"
+                    >
+                      <span className="text-sm">বিষয় সম্পাদনা করুন/ Edit Subject</span>
+                      <ArrowRight className="w-4 h-4 ml-2 transform group-hover/button:translate-x-1 transition-transform" />
+                    </NavLink>
                     <NavLink
                       to={`/questions/${subject.level}/${subject.group}/${subject._id}`}
                       className="inline-flex items-center justify-center w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 shadow-md hover:shadow-lg group/button"

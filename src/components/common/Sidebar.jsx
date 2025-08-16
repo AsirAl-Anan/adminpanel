@@ -26,7 +26,7 @@ import { LayoutDashboard, MessageSquare, BookOpen, Users, Settings, LogOut, Chev
  */
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
-
+  
   return (
     <>
       
@@ -51,15 +51,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   Dashboard
                 </NavLink>
               </li>
-              <li>
-                <NavLink
-                  to="/chat"
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-100 hover:text-blue-700 transition"
-                >
-                  <MessageSquare className="w-5 h-5" />
-                  Messages
-                </NavLink>
-              </li>
+              
             </ul>
 
             <hr className="my-3 border-gray-200" />

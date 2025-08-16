@@ -1,6 +1,7 @@
 import React from 'react';
-
+import { useNavigate, NavLink } from 'react-router-dom';
 export default function UnderConstruction() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 flex items-center justify-center p-4">
       {/* Background Pattern */}
@@ -88,7 +89,7 @@ export default function UnderConstruction() {
             <div className="w-2 h-2 bg-amber-500 rounded-full mr-2 animate-pulse"></div>
             Coming Soon
           </div>
-          <button className=' bg-green-500 w-full flex justify-center mt-4 rounded-lg'>          <a href="/" className='text-xl font-bold block w-full '>Go Back</a>
+          <button className=' bg-green-500 w-full flex justify-center mt-4 rounded-lg'>          <NavLink onClick={() => navigate(-1)} className='text-xl font-bold block w-full '>Go Back</NavLink>
  </button>
         </div>
 

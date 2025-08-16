@@ -169,7 +169,7 @@ const QuestionBankPage = () => {
   }
   return (
     <div
-      className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50"
+      className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 "
       style={{ fontFamily: '"Noto Sans Bengali", "Inter", sans-serif' }}
     >
       {/* Header */}

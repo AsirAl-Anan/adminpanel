@@ -5,7 +5,7 @@ import axios from '../../config/axios.js';
 import { HashLoader } from 'react-spinners';
 import { ChevronDown, ChevronUp, Edit, Save, X, Trash2, GraduationCap, BookOpen, Target, Calendar, Building, Award } from 'lucide-react'; // Added icons
 import LatexRenderer from './LatexRenderer.jsx';
-
+import { toast } from 'react-toastify';
 const ViewQuestion = () => {
   const { level, group, subjectId, questionId } = useParams();
   const navigate = useNavigate();
@@ -121,7 +121,19 @@ const ViewQuestion = () => {
     // You can add icons here if needed, e.g., using Lucide React icons
     return null; // Or return an icon component
   };
-
+ const handleDelete = async () => { 
+  try{
+ const response = await axios.delete(`/qb/${questionId}`)
+ if(response.data.success){
+   toast("Question deleted successfully")
+   navigate(-1)
+ } else {
+   toast("Failed to delete question")
+ }
+  }catch(error){
+    console.log(error)
+  }
+ }
   // Fetch the question
   useEffect(() => {
     const fetchQuestion = async () => {
@@ -622,13 +634,8 @@ const ViewQuestion = () => {
                   {/* Action Buttons - Only shown in view mode */}
                   {!isEditing && (
                     <div className="flex items-center gap-1 ml-2 flex-shrink-0">
-                      <NavLink
-                        to={`${location.pathname}/edit`} // Or use onClick to set isEditing if you prefer inline editing
-                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
-                      >
-                        <Edit size={14} />
-                      </NavLink>
-                      <button className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200">
+                    
+                      <button onClick={handleDelete} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200">
                         <Trash2 size={14} />
                       </button>
                     </div>

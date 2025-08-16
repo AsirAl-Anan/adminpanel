@@ -10,6 +10,7 @@ import Qb from "./pages/subpages/Qb"
 import Dashboard from "./pages/subpages/Dashboard"
 import UnderConstruction from "./pages/errors/UnderConstruction"
 import ViewQuestion from "./pages/subpages/ViewQuestion"
+import SubjectManagementPage from "./components/Subject/SubjectManagementPage"
 const router = createBrowserRouter([
   {
     path: "/",
@@ -19,10 +20,7 @@ const router = createBrowserRouter([
         path: "/",
         element: <Dashboard />
       },
-      {
-        path: "/chat",
-        element: <Chat />
-      },
+    
       {
         path: "/add-cq",
         element: <AddCreativeQuestionPage />
@@ -39,7 +37,10 @@ const router = createBrowserRouter([
         path: "/questions/:level/:group/:subjectId/:questionId", //required page to view and edit a single question
         element: <ViewQuestion />
       },
-       
+       {
+        path:'/subject/:id',
+        element: <SubjectManagementPage />
+       }
       
       
       // Add more child routes here as needed
