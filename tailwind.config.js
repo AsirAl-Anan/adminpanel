@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+import animate from "tailwindcss-animate";
+
 export default {
   content: [
     "./index.html",
@@ -6,10 +8,12 @@ export default {
   ],
   theme: {
     extend: {
-      fontFamily:{
-         sans: ['"Open Sans"', 'sans-serif'],
-      }
+      fontFamily: {
+        sans: ['"Open Sans"', 'sans-serif'],
+      },
     },
   },
-  plugins: [],
-}
+  plugins: [
+    animate,
+  ],
+};

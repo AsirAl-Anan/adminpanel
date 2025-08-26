@@ -1,662 +1,313 @@
-// components/TopicList.js
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from '../../config/axios';
+// Custom toast functions are now used
+import { showSuccessToast, showErrorToast } from '../toast/Toast';
+import TopicAddOrEditModal from '../modals/topicEditOrAddModal';
 
 const TopicList = ({ subjectId, chapterIndex, topics, onUpdate }) => {
-  console.log("subjectId:", subjectId);
-  const [isTopicsVisible, setIsTopicsVisible] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTopicsModalOpen, setIsTopicsModalOpen] = useState(false);
+  const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingTopicIndex, setEditingTopicIndex] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [newTopic, setNewTopic] = useState({
-    englishName: '',
-    banglaName: '',
+
+  // --- UPDATED: Initial state now uses the correct object-of-arrays structure for aliases ---
+  const getInitialTopicState = () => ({
+    name: { english: '', bangla: '' },
+    description: { english: '', bangla: '' },
     topicCode: '',
-    englishDescription: '',
-    banglaDescription: '',
-    images: [],
-    formulas: [
-      {
-        equation: '',
-        derivation: '',
-        explanation: ''
-      }
-    ],
-    aliases: {
-      english: [''],
-      bangla: [''],
-      banglish: ['']
-    }
+    index: 0,
+    type: '',
+    aliases: { english: [], bangla: [], banglish: [] }, // Ensure top-level aliases match the structure
+    questionTypes: [{ english: '', bangla: '' }],
+    segments: [{
+      title: { english: '', bangla: '' },
+      description: { english: '', bangla: '' },
+      aliases: { english: [], bangla: [], banglish: [] }, // Use the correct object structure
+      images: [],
+      formulas: []
+    }]
   });
-  const [imagePreviews, setImagePreviews] = useState([]);
 
-  const toggleTopicsVisibility = () => {
-    setIsTopicsVisible(!isTopicsVisible);
-  };
+  const [newTopic, setNewTopic] = useState(getInitialTopicState());
 
-  const openModal = (topic = null, index = null) => {
+  useEffect(() => {
+    console.log(newTopic);
+  }, [newTopic]);
+
+  const initializeForm = (topic = null, index = null) => {
     if (topic) {
-      // Edit mode
+      // Edit mode - populate with existing data
       setIsEditMode(true);
       setEditingTopicIndex(index);
       setNewTopic({
-        englishName: topic.englishName || '',
-        banglaName: topic.banglaName || '',
+        name: { english: topic.englishName || '', bangla: topic.banglaName || '' },
+        description: { english: topic.englishDescription || '', bangla: topic.banglaDescription || '' },
         topicCode: topic.topicCode || '',
-        englishDescription: topic.englishDescription || '',
-        banglaDescription: topic.banglaDescription || '',
-        images: topic.images || [],
-        formulas: topic.formulas && topic.formulas.length > 0 
-          ? topic.formulas 
-          : [{ equation: '', derivation: '', explanation: '' }],
-        aliases: {
-          english: topic.aliases?.english || [''],
-          bangla: topic.aliases?.bangla || [''],
-          banglish: topic.aliases?.banglish || ['']
-        }
+        index: topic.index !== undefined ? topic.index : 0,
+        type: topic.type || 'theory',
+        // --- UPDATED: No transformation needed. Use data directly from API. ---
+        aliases: topic.aliases || { english: [], bangla: [], banglish: [] },
+        questionTypes: topic.questionTypes?.length > 0 ? topic.questionTypes : [],
+        segments: topic.segments?.length > 0 ? topic.segments.map(seg => ({
+          ...seg,
+          // --- UPDATED: Also use segment aliases directly. ---
+          aliases: seg.aliases || { english: [], bangla: [], banglish: [] },
+          images: seg.images?.map(img => ({
+            url: img.url,
+            title: img.title || { english: '', bangla: '' },
+            description: img.description || { english: '', bangla: '' }
+          })) || []
+        })) : [],
       });
-      // Set image previews for existing images
-      setImagePreviews(topic.images?.map(img => img.url) || []);
     } else {
-      // Add mode
+      // Add mode - reset to default state
       setIsEditMode(false);
       setEditingTopicIndex(null);
-      setNewTopic({
-        englishName: '',
-        banglaName: '',
-        topicCode: '',
-        englishDescription: '',
-        banglaDescription: '',
-        images: [],
-        formulas: [{ equation: '', derivation: '', explanation: '' }],
-        aliases: {
-          english: [''],
-          bangla: [''],
-          banglish: ['']
-        }
-      });
-      setImagePreviews([]);
+      setNewTopic(getInitialTopicState());
     }
-    setIsModalOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setIsEditMode(false);
-    setEditingTopicIndex(null);
-    setNewTopic({
-      englishName: '',
-      banglaName: '',
-      topicCode: '',
-      englishDescription: '',
-      banglaDescription: '',
-      images: [],
-      formulas: [{ equation: '', derivation: '', explanation: '' }],
-      aliases: {
-        english: [''],
-        bangla: [''],
-        banglish: ['']
-      }
-    });
-    setImagePreviews([]);
+  const openAddEditModal = (topic = null, index = null) => {
+    initializeForm(topic, index);
+    setIsAddEditModalOpen(true);
+    setIsTopicsModalOpen(false);
   };
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    const newPreviews = files.map(file => URL.createObjectURL(file));
-    setImagePreviews(prev => [...prev, ...newPreviews]);
-    
-    setNewTopic(prev => ({
-      ...prev,
-      images: [
-        ...prev.images,
-        ...files.map(file => ({
-          file,
-          title: '' // Initialize with empty title
+  const closeAddEditModal = () => {
+    setIsAddEditModalOpen(false);
+  };
+
+  const openTopicsModal = () => setIsTopicsModalOpen(true);
+  const closeTopicsModal = () => setIsTopicsModalOpen(false);
+
+  const prepareDataForApi = (topicState) => {
+    return {
+      englishName: topicState.name.english,
+      banglaName: topicState.name.bangla,
+      englishDescription: topicState.description.english,
+      banglaDescription: topicState.description.bangla,
+      topicCode: topicState.topicCode,
+      index: topicState.index,
+      type: topicState.type,
+      // --- UPDATED: No transformation needed. The state is already in the correct format for the API. ---
+      questionTypes: topicState.questionTypes.filter(qt => qt.english?.trim() || qt.bangla?.trim()),
+      segments: topicState.segments.map(seg => ({
+        ...seg,
+        // --- UPDATED: Segment aliases are also in the correct format. ---
+        aliases: seg.aliases,
+        images: seg.images.map(img => ({
+          title: img.title,
+          description: img.description,
+          ...(img.url && { url: img.url })
         }))
-      ]
-    }));
+      }))
+    };
   };
 
-  const removeImage = (index) => {
-    setImagePreviews(prev => prev.filter((_, i) => i !== index));
-    setNewTopic(prev => {
-      const updatedImages = [...prev.images];
-      updatedImages.splice(index, 1);
-      return { ...prev, images: updatedImages };
-    });
-  };
-
-  const updateImageTitle = (index, title) => {
-    setNewTopic(prev => {
-      const updatedImages = [...prev.images];
-      updatedImages[index] = { ...updatedImages[index], title };
-      return { ...prev, images: updatedImages };
-    });
-  };
-
+  // --- CRUD Operations (Updated with custom toasts) ---
   const handleAddTopic = async () => {
-    if (!newTopic.englishName || !newTopic.banglaName || !newTopic.topicCode) return;
-
+    if (!newTopic.name.english || !newTopic.name.bangla) {
+      showErrorToast("English and Bangla Topic Names are required."); // <-- Updated
+      return;
+    }
     setLoading(true);
     try {
+      const topicDataForApi = prepareDataForApi(newTopic);
+      const formData = new FormData();
+      topicDataForApi.segments.forEach((seg) => {
+        seg.uniqueKey = Date.now().toString() + `${Math.random(6)}`
+      })
+      formData.append('topicData', JSON.stringify(topicDataForApi));
+
+      newTopic.segments.forEach((segment, segIdx) => {
+        segment.images.forEach((img, imgIdx) => {
+          if (img.file) {
+            formData.append(`segment_${segIdx}_image_${imgIdx}`, img.file);
+          }
+        });
+      });
+
       const response = await axios.put(
         `/subject/${subjectId}/chapters/${chapterIndex}/topics`,
-        { topic: newTopic },
-        { withCredentials: true }
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
       );
-      onUpdate();
-      closeModal();
+
+      if (response.data.success) {
+        showSuccessToast('Topic added successfully'); // <-- Updated
+        onUpdate();
+        closeAddEditModal();
+      } else {
+        showErrorToast(response.data.message || 'Failed to add topic'); // <-- Updated
+      }
     } catch (err) {
-      console.error('Failed to add topic:', err);
-      alert('Failed to add topic');
+      console.error(err);
+      showErrorToast(err.response?.data?.message || 'Failed to add topic'); // <-- Updated
     } finally {
       setLoading(false);
     }
   };
 
-const handleEditTopic = async () => {
-  if (!newTopic.englishName || !newTopic.banglaName || !newTopic.topicCode) return;
-
-  setLoading(true);
-  try {
-    const formData = new FormData();
-    
-    // Append only changed fields
-    const originalTopic = topics[editingTopicIndex];
-    let hasChanges = false;
-    
-    if (newTopic.englishName !== originalTopic.englishName) {
-      formData.append('englishName', newTopic.englishName);
-      hasChanges = true;
-    }
-    if (newTopic.banglaName !== originalTopic.banglaName) {
-      formData.append('banglaName', newTopic.banglaName);
-      hasChanges = true;
-    }
-    if (newTopic.topicCode !== originalTopic.topicCode) {
-      formData.append('topicCode', newTopic.topicCode);
-      hasChanges = true;
-    }
-    if (newTopic.englishDescription !== (originalTopic.englishDescription || '')) {
-      formData.append('englishDescription', newTopic.englishDescription);
-      hasChanges = true;
-    }
-    if (newTopic.banglaDescription !== (originalTopic.banglaDescription || '')) {
-      formData.append('banglaDescription', newTopic.banglaDescription);
-      hasChanges = true;
-    }
-    
-    // Handle aliases
-    const originalAliases = originalTopic.aliases || { english: [], bangla: [], banglish: [] };
-    if (JSON.stringify(newTopic.aliases) !== JSON.stringify(originalAliases)) {
-      formData.append('aliases', JSON.stringify(newTopic.aliases));
-      hasChanges = true;
-    }
-    
-    // Handle formulas
-    const originalFormulas = originalTopic.formulas || [];
-    if (JSON.stringify(newTopic.formulas) !== JSON.stringify(originalFormulas)) {
-      formData.append('formulas', JSON.stringify(newTopic.formulas));
-      hasChanges = true;
-    }
-    
-    // Handle new images
-    const newImages = newTopic.images.filter(img => img.file);
-    if (newImages.length > 0) {
-      newImages.forEach((img) => {
-        console.log('file:', img.file)
-        formData.append(`${img.title}`, img.file);
-      });
-      
-      hasChanges = true;
-    }
-    
-    // Handle existing image title updates
-    const existingImages = newTopic.images.filter(img => !img.file);
-    const titleUpdates = existingImages
-      .map((img, index) => {
-        const originalImg = originalTopic.images.find(o => o.url === img.url);
-        if (originalImg && img.title !== originalImg.title) {
-          return { index: newTopic.images.indexOf(img), title: img.title };
-        }
-        return null;
-      })
-      .filter(Boolean);
-    
-    if (titleUpdates.length > 0) {
-      formData.append('updatedImageTitles', JSON.stringify(titleUpdates));
-      hasChanges = true;
-    }
-    
-    // Debug: Log FormData contents
-    console.log('FormData contents being sent:');
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-    
-    // If no changes, show message and return
-    if (!hasChanges && newImages.length === 0 && titleUpdates.length === 0) {
-      alert('No changes detected');
-      setLoading(false);
+  const handleEditTopic = async () => {
+    if (!newTopic.name.english || !newTopic.name.bangla) {
+      showErrorToast("English and Bangla Topic Names are required."); // <-- Updated
       return;
     }
-    
-    // Send the FormData directly (not wrapped in an object)
-    await axios.put(
-      `/subject/${subjectId}/chapters/${chapterIndex}/topics/${editingTopicIndex}`,
-      formData, // Send formData directly
-      {
-        headers: { 
-          'Content-Type': 'multipart/form-data' // This is important
-        },
-        withCredentials: true
-      }
-    );
-    
-    onUpdate();
-    closeModal();
-  } catch (err) {
-    console.error('Failed to edit topic:', err);
-    alert('Failed to edit topic: ' + (err.response?.data?.message || err.message));
-  } finally {
-    setLoading(false);
-  }
-};
-
-  const handleDeleteTopic = async (topicIndex) => {
-    const confirm = window.confirm('Are you sure you want to delete this topic?');
-    if (!confirm) return;
-
+    setLoading(true);
     try {
-      await axios.delete(`/subject/${subjectId}/chapters/${chapterIndex}/topics/${topicIndex}`);
-      onUpdate();
+      const topicDataForApi = prepareDataForApi(newTopic);
+      const formData = new FormData();
+      formData.append('editableData', JSON.stringify(topicDataForApi));
+
+      newTopic.segments.forEach((segment, segIdx) => {
+        segment.images.forEach((img, imgIdx) => {
+          if (img.file) {
+            formData.append(`segment_${segIdx}_image_${imgIdx}`, img.file);
+          }
+        });
+      });
+
+      const response = await axios.put(
+        `/subject/${subjectId}/chapters/${chapterIndex}/topics/${editingTopicIndex}`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+
+      if (response.data.success) {
+        showSuccessToast('Topic updated successfully'); // <-- Updated
+        onUpdate();
+        closeAddEditModal();
+      } else {
+        showErrorToast(response.data.message || 'Failed to update topic'); // <-- Updated
+      }
     } catch (err) {
-      alert('Failed to delete topic');
+      console.log("err", err);
+      showErrorToast(err.response?.data?.message || 'Failed to update topic'); // <-- Updated
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Formula management functions
-  const addFormula = () => {
-    setNewTopic({
-      ...newTopic,
-      formulas: [
-        ...newTopic.formulas,
-        {
-          equation: '',
-          derivation: '',
-          explanation: ''
-        }
-      ]
-    });
-  };
-
-  const updateFormula = (index, field, value) => {
-    const updatedFormulas = [...newTopic.formulas];
-    updatedFormulas[index][field] = value;
-    setNewTopic({
-      ...newTopic,
-      formulas: updatedFormulas
-    });
-  };
-
-  const removeFormula = (index) => {
-    if (newTopic.formulas.length <= 1) return;
-    const updatedFormulas = newTopic.formulas.filter((_, i) => i !== index);
-    setNewTopic({
-      ...newTopic,
-      formulas: updatedFormulas
-    });
-  };
-
-  // Alias management functions
-  const updateAlias = (lang, index, value) => {
-    const updatedAliases = [...newTopic.aliases[lang]];
-    updatedAliases[index] = value;
-    setNewTopic({
-      ...newTopic,
-      aliases: {
-        ...newTopic.aliases,
-        [lang]: updatedAliases
+  const handleDeleteTopic = async (topicIndex) => {
+    if (!window.confirm('Are you sure you want to delete this topic?')) return;
+    try {
+      const response = await axios.delete(`/subject/${subjectId}/chapters/${chapterIndex}/topics/${topicIndex}`);
+      if (response.data.success) {
+        showSuccessToast('Topic deleted successfully'); // <-- Updated
+        onUpdate();
+      } else {
+        showErrorToast(response.data.message || 'Failed to delete topic'); // <-- Updated
       }
-    });
-  };
-
-  const addAliasField = (lang) => {
-    const updatedAliases = [...newTopic.aliases[lang], ''];
-    setNewTopic({
-      ...newTopic,
-      aliases: {
-        ...newTopic.aliases,
-        [lang]: updatedAliases
-      }
-    });
-  };
-
-  const removeAliasField = (lang, index) => {
-    const updatedAliases = newTopic.aliases[lang].filter((_, i) => i !== index);
-    setNewTopic({
-      ...newTopic,
-      aliases: {
-        ...newTopic.aliases,
-        [lang]: updatedAliases
-      }
-    });
+    } catch (err) {
+      showErrorToast(err.response?.data?.message || 'Failed to delete topic'); // <-- Updated
+    }
   };
 
   return (
-    <div className="mt-4">
-      <div className="flex justify-between items-center mb-2">
-        <button
-          onClick={toggleTopicsVisibility}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200"
-        >
-          {isTopicsVisible ? 'Hide Topics' : 'Show Topics'}
-        </button>
-        <button
-          onClick={() => openModal()}
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors duration-200"
-        >
-          Add Topic
-        </button>
+    <>
+      {/* --- JSX (No changes needed here) --- */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-1">Topic Management</h2>
+            <p className="text-gray-600 text-sm">
+              {topics?.length || 0} topics • Organize and manage educational content
+            </p>
+          </div>
+        </div>
+        <div className="mb-6">
+          <div className="bg-gradient-to-r from-blue-50 to-blue-100/50 p-4 rounded-xl border border-blue-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-700 font-medium text-lg">{topics?.length || 0}</p>
+                <p className="text-blue-600 text-sm font-medium">Total Topics</p>
+              </div>
+              <div className="w-8 h-8 bg-blue-200 rounded-lg flex items-center justify-center">
+                <svg className="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={openTopicsModal}
+            className="flex-1 flex items-center justify-center px-4 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 font-medium group"
+          >
+            <svg className="w-5 h-5 mr-2 text-gray-600 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
+            Show Topics
+          </button>
+          <button
+            onClick={() => openAddEditModal()}
+            className="flex-1 flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl font-medium transform hover:-translate-y-0.5"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add New Topic
+          </button>
+        </div>
       </div>
 
-      {/* Topics List */}
-      {isTopicsVisible && (
-        <ul className="list-disc pl-5 space-y-3">
-          {topics.map((topic, idx) => (
-            <li 
-              key={idx} 
-              className="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
-            >
-              <div>
-                <span className="font-medium text-gray-800">
-                  {topic.englishName} ({topic.banglaName})
-                </span>
-                <span className="ml-2 text-sm text-gray-500">- {topic.topicCode}</span>
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => openModal(topic, idx)}
-                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors duration-200"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteTopic(idx)}
-                  className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors duration-200"
-                >
-                  Delete
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {/* Modal for Adding/Editing Topic */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4 text-gray-800">
-              {isEditMode ? 'Edit Topic' : 'Add New Topic'}
-            </h3>
-
-            {/* Basic Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  English Name
-                </label>
-                <input
-                  type="text"
-                  value={newTopic.englishName}
-                  onChange={(e) =>
-                    setNewTopic({ ...newTopic, englishName: e.target.value })
-                  }
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Bangla Name
-                </label>
-                <input
-                  type="text"
-                  value={newTopic.banglaName}
-                  onChange={(e) =>
-                    setNewTopic({ ...newTopic, banglaName: e.target.value })
-                  }
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Topic Code
-                </label>
-                <input
-                  type="text"
-                  value={newTopic.topicCode}
-                  onChange={(e) =>
-                    setNewTopic({ ...newTopic, topicCode: e.target.value })
-                  }
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                English Description
-              </label>
-              <textarea
-                value={newTopic.englishDescription}
-                onChange={(e) =>
-                  setNewTopic({ ...newTopic, englishDescription: e.target.value })
-                }
-                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                rows="3"
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Bangla Description
-              </label>
-              <textarea
-                value={newTopic.banglaDescription}
-                onChange={(e) =>
-                  setNewTopic({ ...newTopic, banglaDescription: e.target.value })
-                }
-                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                rows="3"
-              />
-            </div>
-
-            {/* Image Upload */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Images
-              </label>
-              <div className="flex flex-wrap gap-4 mb-3">
-                {newTopic.images.map((image, index) => (
-                  <div key={index} className="relative">
-                    <img 
-                      src={image.file ? URL.createObjectURL(image.file) : image.url} 
-                      alt={`Preview ${index}`} 
-                      className="w-32 h-32 object-cover rounded border"
-                    />
-                    <input
-                      type="text"
-                      value={image.title || ''}
-                      onChange={(e) => updateImageTitle(index, e.target.value)}
-                      placeholder="Image title"
-                      className="w-full mt-1 p-1 text-sm border border-gray-300 rounded"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <svg className="w-8 h-8 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-                  </svg>
-                  <p className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">Click to upload</span> or drag and drop
-                  </p>
-                  <p className="text-xs text-gray-500">PNG, JPG, GIF (MAX. 5MB)</p>
+      {isTopicsModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold">Topics List</h2>
+                  <p className="text-blue-100 text-sm">{topics?.length || 0} topics available</p>
                 </div>
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  multiple 
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-              </label>
-            </div>
-
-            {/* Formulas Section */}
-            <fieldset className="border border-gray-300 p-4 rounded-lg mb-6">
-              <legend className="text-sm font-medium text-gray-700 px-2">
-                Formulas
-              </legend>
-              {newTopic.formulas.map((formula, idx) => (
-                <div key={idx} className="border border-gray-200 p-4 rounded mb-4">
-                  <div className="flex justify-between items-center mb-3">
-                    <h4 className="font-medium text-gray-800">Formula {idx + 1}</h4>
-                    {newTopic.formulas.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeFormula(idx)}
-                        className="text-red-500 hover:text-red-700 text-sm"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm text-gray-600 mb-1">
-                        Equation
-                      </label>
-                      <input
-                        type="text"
-                        value={formula.equation}
-                        onChange={(e) => updateFormula(idx, 'equation', e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-600 mb-1">
-                        Derivation
-                      </label>
-                      <input
-                        type="text"
-                        value={formula.derivation}
-                        onChange={(e) => updateFormula(idx, 'derivation', e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-600 mb-1">
-                        Explanation
-                      </label>
-                      <textarea
-                        value={formula.explanation}
-                        onChange={(e) => updateFormula(idx, 'explanation', e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded"
-                        rows="2"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={addFormula}
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-              >
-                + Add Formula
-              </button>
-            </fieldset>
-
-            {/* Aliases */}
-            {['english', 'bangla', 'banglish'].map((lang) => (
-              <div key={lang} className="mb-5">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {lang.charAt(0).toUpperCase() + lang.slice(1)} Aliases
-                </label>
-                <div className="space-y-2">
-                  {newTopic.aliases[lang].map((alias, idx) => (
-                    <div key={idx} className="flex items-center space-x-2">
-                      <input
-                        type="text"
-                        value={alias}
-                        onChange={(e) => updateAlias(lang, idx, e.target.value)}
-                        className="flex-1 p-2 border border-gray-300 rounded"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeAliasField(lang, idx)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => addAliasField(lang)}
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                  >
-                    + Add {lang} alias
+                <div className="flex items-center space-x-3">
+                  <button onClick={() => openAddEditModal()} className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors text-sm font-medium"> Add Topic </button>
+                  <button onClick={closeTopicsModal} className="p-2 hover:bg-blue-800 rounded-lg transition-colors" aria-label="Close modal">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
               </div>
-            ))}
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors duration-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={isEditMode ? handleEditTopic : handleAddTopic}
-                disabled={loading}
-                className={`px-4 py-2 rounded text-white transition-colors duration-200 ${
-                  loading 
-                    ? 'bg-blue-400 cursor-not-allowed' 
-                    : 'bg-blue-600 hover:bg-blue-700'
-                }`}
-              >
-                {loading ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    {isEditMode ? 'Updating...' : 'Adding...'}
-                  </span>
-                ) : isEditMode ? 'Update Topic' : 'Add Topic'}
-              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              {topics?.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {topics.map((topic, idx) => (
+                    <div key={idx} className="bg-gray-50 border border-gray-200 rounded-xl p-5 hover:bg-white hover:border-blue-200 hover:shadow-md transition-all duration-200 group">
+                      <h3 className="font-semibold text-gray-900 text-lg mb-1 group-hover:text-blue-700 transition-colors line-clamp-1">{topic.englishName}</h3>
+                      <p className="text-gray-600 text-sm mb-2 line-clamp-1">{topic.banglaName}</p>
+                      <div className="flex gap-2 pt-3 border-t border-gray-200 mt-4">
+                        <button onClick={() => openAddEditModal(topic, idx)} className="flex-1 flex items-center justify-center px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"> Edit </button>
+                        <button onClick={() => handleDeleteTopic(idx)} className="flex items-center justify-center px-3 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium"> Delete </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No topics yet</h3>
+                  <p className="text-gray-600 mb-6">Get started by creating your first topic.</p>
+                  <button onClick={() => openAddEditModal()} className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl"> Create First Topic </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
-    </div>
+
+      {isAddEditModalOpen && (
+        <TopicAddOrEditModal
+          isEditMode={isEditMode}
+          closeAddEditModal={closeAddEditModal}
+          newTopic={newTopic}
+          setNewTopic={setNewTopic}
+          handleAddTopic={handleAddTopic}
+          handleEditTopic={handleEditTopic}
+          loading={loading}
+        />
+      )}
+    </>
   );
 };
 

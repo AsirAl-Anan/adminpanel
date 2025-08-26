@@ -31,6 +31,7 @@ const ChapterList = ({ subject, onUpdate }) => {
     ]
   });
   const [loading, setLoading] = useState(false);
+  const [expandedTopics, setExpandedTopics] = useState({});
 
   // Chapter field handlers
   const handleChapterFieldChange = (field, value) => {
@@ -184,6 +185,11 @@ const ChapterList = ({ subject, onUpdate }) => {
         }
       ]
     }));
+    // Expand the new topic
+    setExpandedTopics(prev => ({
+      ...prev,
+      [prev.topics.length]: true
+    }));
   };
 
   const removeTopic = (topicIndex) => {
@@ -199,6 +205,13 @@ const ChapterList = ({ subject, onUpdate }) => {
         topics: updatedTopics
       };
     });
+  };
+
+  const toggleTopicExpansion = (topicIndex) => {
+    setExpandedTopics(prev => ({
+      ...prev,
+      [topicIndex]: !prev[topicIndex]
+    }));
   };
 
   const handleAddChapter = async () => {
@@ -276,6 +289,7 @@ const ChapterList = ({ subject, onUpdate }) => {
           }
         ]
       });
+      setExpandedTopics({});
     } catch (err) {
       console.error(err);
       alert('Failed to add chapter');
@@ -285,252 +299,362 @@ const ChapterList = ({ subject, onUpdate }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded shadow">
-      <h2 className="text-xl font-semibold mb-4">Chapters</h2>
-      <ul className="space-y-4">
-        {subject?.chapters?.map((chapter, idx) => (
-          <ChapterItem
-            key={chapter._id || idx}
-            chapter={chapter}
-            subjectId={subject._id}
-            chapterIndex={idx}
-            onUpdate={onUpdate}
-          />
-        ))}
-      </ul>
-
-      {/* Add New Chapter Form */}
-      <div className="mt-6 space-y-4 border-t pt-4">
-        <h3 className="font-medium text-lg">Add New Chapter</h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
-            placeholder="Chapter English Name *"
-            value={newChapter.englishName}
-            onChange={(e) => handleChapterFieldChange('englishName', e.target.value)}
-            className="w-full p-2 border rounded"
-          />
-          <input
-            placeholder="Chapter Bangla Name *"
-            value={newChapter.banglaName}
-            onChange={(e) => handleChapterFieldChange('banglaName', e.target.value)}
-            className="w-full p-2 border rounded"
-          />
+    <div className="bg-gray-50 min-h-screen p-4 md:p-6">
+      <div className="max-w-6xl mx-auto">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Chapter Management</h2>
+        
+        {/* Existing Chapters Section */}
+        <div className="mb-10">
+          <h3 className="text-xl font-semibold text-gray-700 mb-4">Existing Chapters</h3>
+          {subject?.chapters?.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {subject?.chapters?.map((chapter, idx) => (
+                <div key={chapter._id || idx} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                  <ChapterItem
+                    chapter={chapter}
+                    subjectId={subject._id}
+                    chapterIndex={idx}
+                    onUpdate={onUpdate}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+              <p className="text-gray-500">No chapters available. Add your first chapter below.</p>
+            </div>
+          )}
         </div>
 
-        {/* Topics Section */}
-        <div className="border rounded p-4 mt-4">
-          <div className="flex justify-between items-center mb-4">
-            <h4 className="font-medium">Topics</h4>
-            <button
-              onClick={addTopic}
-              className="px-3 py-1 bg-green-500 text-white rounded text-sm"
-            >
-              Add Topic
-            </button>
+        {/* Add New Chapter Section */}
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="bg-indigo-600 px-6 py-4">
+            <h3 className="text-xl font-bold text-white">Add New Chapter</h3>
           </div>
-
-          {newChapter.topics.map((topic, topicIndex) => (
-            <div key={topicIndex} className="border rounded p-4 mb-4 bg-gray-50">
-              <div className="flex justify-between items-center mb-3">
-                <h5 className="font-medium">Topic {topicIndex + 1}</h5>
-                {newChapter.topics.length > 1 && (
-                  <button
-                    onClick={() => removeTopic(topicIndex)}
-                    className="px-2 py-1 bg-red-500 text-white rounded text-xs"
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+          
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">English Name *</label>
                 <input
-                  placeholder="Topic English Name *"
-                  value={topic.englishName}
-                  onChange={(e) => handleTopicFieldChange(topicIndex, 'englishName', e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-                <input
-                  placeholder="Topic Bangla Name *"
-                  value={topic.banglaName}
-                  onChange={(e) => handleTopicFieldChange(topicIndex, 'banglaName', e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-                <input
-                  placeholder="Topic Code *"
-                  value={topic.topicCode}
-                  onChange={(e) => handleTopicFieldChange(topicIndex, 'topicCode', e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-                <input
-                  type="number"
-                  placeholder="Topic Index *"
-                  value={topic.index}
-                  onChange={(e) => handleTopicFieldChange(topicIndex, 'index', parseInt(e.target.value) || 0)}
-                  className="w-full p-2 border rounded"
+                  placeholder="Chapter English Name"
+                  value={newChapter.englishName}
+                  onChange={(e) => handleChapterFieldChange('englishName', e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                 />
               </div>
-
-              <textarea
-                placeholder="Topic Description *"
-                value={topic.description}
-                onChange={(e) => handleTopicFieldChange(topicIndex, 'description', e.target.value)}
-                className="w-full p-2 border rounded mb-3"
-                rows="3"
-              />
-
-              {/* Formulas Section */}
-              <div className="mb-3">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium text-sm">Formulas</span>
-                  <button
-                    onClick={() => addFormula(topicIndex)}
-                    className="px-2 py-1 bg-blue-500 text-white rounded text-xs"
-                  >
-                    Add Formula
-                  </button>
-                </div>
-
-                {topic.formulas.map((formula, formulaIndex) => (
-                  <div key={formulaIndex} className="border rounded p-3 mb-2 bg-white">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs font-medium">Formula {formulaIndex + 1}</span>
-                      {topic.formulas.length > 1 && (
-                        <button
-                          onClick={() => removeFormula(topicIndex, formulaIndex)}
-                          className="px-1 py-0.5 bg-red-400 text-white rounded text-xs"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                    <input
-                      placeholder="Equation *"
-                      value={formula.equation}
-                      onChange={(e) => handleFormulaChange(topicIndex, formulaIndex, 'equation', e.target.value)}
-                      className="w-full p-1 border rounded text-sm mb-1"
-                    />
-                    <input
-                      placeholder="Derivation"
-                      value={formula.derivation}
-                      onChange={(e) => handleFormulaChange(topicIndex, formulaIndex, 'derivation', e.target.value)}
-                      className="w-full p-1 border rounded text-sm mb-1"
-                    />
-                    <textarea
-                      placeholder="Explanation"
-                      value={formula.explanation}
-                      onChange={(e) => handleFormulaChange(topicIndex, formulaIndex, 'explanation', e.target.value)}
-                      className="w-full p-1 border rounded text-sm"
-                      rows="2"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {/* Aliases Section */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs font-medium">English Aliases</span>
-                    <button
-                      onClick={() => addAlias(topicIndex, 'english')}
-                      className="px-1 py-0.5 bg-gray-400 text-white rounded text-xs"
-                    >
-                      +
-                    </button>
-                  </div>
-                  {topic.aliases.english.map((alias, aliasIndex) => (
-                    <div key={aliasIndex} className="flex mb-1">
-                      <input
-                        placeholder="English alias"
-                        value={alias}
-                        onChange={(e) => handleAliasChange(topicIndex, 'english', aliasIndex, e.target.value)}
-                        className="flex-1 p-1 border rounded text-sm"
-                      />
-                      {topic.aliases.english.length > 1 && (
-                        <button
-                          onClick={() => removeAlias(topicIndex, 'english', aliasIndex)}
-                          className="ml-1 px-1 py-0.5 bg-red-400 text-white rounded text-xs"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs font-medium">Bangla Aliases</span>
-                    <button
-                      onClick={() => addAlias(topicIndex, 'bangla')}
-                      className="px-1 py-0.5 bg-gray-400 text-white rounded text-xs"
-                    >
-                      +
-                    </button>
-                  </div>
-                  {topic.aliases.bangla.map((alias, aliasIndex) => (
-                    <div key={aliasIndex} className="flex mb-1">
-                      <input
-                        placeholder="Bangla alias"
-                        value={alias}
-                        onChange={(e) => handleAliasChange(topicIndex, 'bangla', aliasIndex, e.target.value)}
-                        className="flex-1 p-1 border rounded text-sm"
-                      />
-                      {topic.aliases.bangla.length > 1 && (
-                        <button
-                          onClick={() => removeAlias(topicIndex, 'bangla', aliasIndex)}
-                          className="ml-1 px-1 py-0.5 bg-red-400 text-white rounded text-xs"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs font-medium">Banglish Aliases</span>
-                    <button
-                      onClick={() => addAlias(topicIndex, 'banglish')}
-                      className="px-1 py-0.5 bg-gray-400 text-white rounded text-xs"
-                    >
-                      +
-                    </button>
-                  </div>
-                  {topic.aliases.banglish.map((alias, aliasIndex) => (
-                    <div key={aliasIndex} className="flex mb-1">
-                      <input
-                        placeholder="Banglish alias"
-                        value={alias}
-                        onChange={(e) => handleAliasChange(topicIndex, 'banglish', aliasIndex, e.target.value)}
-                        className="flex-1 p-1 border rounded text-sm"
-                      />
-                      {topic.aliases.banglish.length > 1 && (
-                        <button
-                          onClick={() => removeAlias(topicIndex, 'banglish', aliasIndex)}
-                          className="ml-1 px-1 py-0.5 bg-red-400 text-white rounded text-xs"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Bangla Name *</label>
+                <input
+                  placeholder="Chapter Bangla Name"
+                  value={newChapter.banglaName}
+                  onChange={(e) => handleChapterFieldChange('banglaName', e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                />
               </div>
             </div>
-          ))}
-        </div>
 
-        <button
-          onClick={handleAddChapter}
-          disabled={loading}
-          className={`px-4 py-2 bg-indigo-500 text-white rounded ${loading ? 'opacity-50' : ''}`}
-        >
-          {loading ? 'Adding Chapter...' : 'Add Chapter'}
-        </button>
+            {/* Topics Section */}
+            <div className="border border-gray-200 rounded-lg p-5 mt-6 bg-gray-50">
+              <div className="flex justify-between items-center mb-5">
+                <h4 className="text-lg font-semibold text-gray-800">Topics</h4>
+                <button
+                  onClick={addTopic}
+                  className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center transition duration-200"
+                >
+                  <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                  </svg>
+                  Add Topic
+                </button>
+              </div>
+
+              {newChapter.topics.map((topic, topicIndex) => (
+                <div key={topicIndex} className="border border-gray-200 rounded-lg mb-5 bg-white shadow-sm">
+                  <div 
+                    className="flex justify-between items-center p-4 bg-gray-100 cursor-pointer rounded-t-lg"
+                    onClick={() => toggleTopicExpansion(topicIndex)}
+                  >
+                    <h5 className="font-medium text-gray-800">Topic {topicIndex + 1}: {topic.englishName || 'Untitled'}</h5>
+                    <div className="flex items-center space-x-2">
+                      {newChapter.topics.length > 1 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeTopic(topicIndex);
+                          }}
+                          className="p-1 text-red-500 hover:bg-red-100 rounded-full"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                        </button>
+                      )}
+                      <svg 
+                        className={`w-5 h-5 text-gray-500 transform transition-transform ${expandedTopics[topicIndex] ? 'rotate-180' : ''}`} 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24" 
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
+                  </div>
+
+                  {expandedTopics[topicIndex] && (
+                    <div className="p-5 border-t border-gray-200">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">English Name *</label>
+                          <input
+                            placeholder="Topic English Name"
+                            value={topic.englishName}
+                            onChange={(e) => handleTopicFieldChange(topicIndex, 'englishName', e.target.value)}
+                            className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Bangla Name *</label>
+                          <input
+                            placeholder="Topic Bangla Name"
+                            value={topic.banglaName}
+                            onChange={(e) => handleTopicFieldChange(topicIndex, 'banglaName', e.target.value)}
+                            className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Topic Code *</label>
+                          <input
+                            placeholder="Topic Code"
+                            value={topic.topicCode}
+                            onChange={(e) => handleTopicFieldChange(topicIndex, 'topicCode', e.target.value)}
+                            className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Index *</label>
+                          <input
+                            type="number"
+                            placeholder="Topic Index"
+                            value={topic.index}
+                            onChange={(e) => handleTopicFieldChange(topicIndex, 'index', parseInt(e.target.value) || 0)}
+                            className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="mb-5">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                        <textarea
+                          placeholder="Topic Description"
+                          value={topic.description}
+                          onChange={(e) => handleTopicFieldChange(topicIndex, 'description', e.target.value)}
+                          className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                          rows="3"
+                        />
+                      </div>
+
+                      {/* Formulas Section */}
+                      <div className="mb-6">
+                        <div className="flex justify-between items-center mb-3">
+                          <h6 className="font-medium text-gray-800">Formulas</h6>
+                          <button
+                            onClick={() => addFormula(topicIndex)}
+                            className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center text-sm transition duration-200"
+                          >
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Add Formula
+                          </button>
+                        </div>
+
+                        {topic.formulas.map((formula, formulaIndex) => (
+                          <div key={formulaIndex} className="border border-gray-200 rounded-lg p-4 mb-3 bg-gray-50">
+                            <div className="flex justify-between items-center mb-3">
+                              <span className="font-medium text-gray-700">Formula {formulaIndex + 1}</span>
+                              {topic.formulas.length > 1 && (
+                                <button
+                                  onClick={() => removeFormula(topicIndex, formulaIndex)}
+                                  className="p-1 text-red-500 hover:bg-red-100 rounded-full"
+                                >
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                                  </svg>
+                                </button>
+                              )}
+                            </div>
+                            <div className="space-y-3">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Equation *</label>
+                                <input
+                                  placeholder="Equation"
+                                  value={formula.equation}
+                                  onChange={(e) => handleFormulaChange(topicIndex, formulaIndex, 'equation', e.target.value)}
+                                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Derivation</label>
+                                <input
+                                  placeholder="Derivation"
+                                  value={formula.derivation}
+                                  onChange={(e) => handleFormulaChange(topicIndex, formulaIndex, 'derivation', e.target.value)}
+                                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Explanation</label>
+                                <textarea
+                                  placeholder="Explanation"
+                                  value={formula.explanation}
+                                  onChange={(e) => handleFormulaChange(topicIndex, formulaIndex, 'explanation', e.target.value)}
+                                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                                  rows="2"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Aliases Section */}
+                      <div>
+                        <h6 className="font-medium text-gray-800 mb-3">Aliases</h6>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <div className="flex justify-between items-center mb-2">
+                              <label className="text-sm font-medium text-gray-700">English</label>
+                              <button
+                                onClick={() => addAlias(topicIndex, 'english')}
+                                className="p-1 bg-gray-200 hover:bg-gray-300 rounded-full"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                              </button>
+                            </div>
+                            {topic.aliases.english.map((alias, aliasIndex) => (
+                              <div key={aliasIndex} className="flex mb-2">
+                                <input
+                                  placeholder="English alias"
+                                  value={alias}
+                                  onChange={(e) => handleAliasChange(topicIndex, 'english', aliasIndex, e.target.value)}
+                                  className="flex-1 p-2 border border-gray-300 rounded-l-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                                />
+                                {topic.aliases.english.length > 1 && (
+                                  <button
+                                    onClick={() => removeAlias(topicIndex, 'english', aliasIndex)}
+                                    className="p-2 bg-red-100 text-red-500 hover:bg-red-200 rounded-r-md"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+
+                          <div>
+                            <div className="flex justify-between items-center mb-2">
+                              <label className="text-sm font-medium text-gray-700">Bangla</label>
+                              <button
+                                onClick={() => addAlias(topicIndex, 'bangla')}
+                                className="p-1 bg-gray-200 hover:bg-gray-300 rounded-full"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                              </button>
+                            </div>
+                            {topic.aliases.bangla.map((alias, aliasIndex) => (
+                              <div key={aliasIndex} className="flex mb-2">
+                                <input
+                                  placeholder="Bangla alias"
+                                  value={alias}
+                                  onChange={(e) => handleAliasChange(topicIndex, 'bangla', aliasIndex, e.target.value)}
+                                  className="flex-1 p-2 border border-gray-300 rounded-l-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                                />
+                                {topic.aliases.bangla.length > 1 && (
+                                  <button
+                                    onClick={() => removeAlias(topicIndex, 'bangla', aliasIndex)}
+                                    className="p-2 bg-red-100 text-red-500 hover:bg-red-200 rounded-r-md"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+
+                          <div>
+                            <div className="flex justify-between items-center mb-2">
+                              <label className="text-sm font-medium text-gray-700">Banglish</label>
+                              <button
+                                onClick={() => addAlias(topicIndex, 'banglish')}
+                                className="p-1 bg-gray-200 hover:bg-gray-300 rounded-full"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                              </button>
+                            </div>
+                            {topic.aliases.banglish.map((alias, aliasIndex) => (
+                              <div key={aliasIndex} className="flex mb-2">
+                                <input
+                                  placeholder="Banglish alias"
+                                  value={alias}
+                                  onChange={(e) => handleAliasChange(topicIndex, 'banglish', aliasIndex, e.target.value)}
+                                  className="flex-1 p-2 border border-gray-300 rounded-l-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                                />
+                                {topic.aliases.banglish.length > 1 && (
+                                  <button
+                                    onClick={() => removeAlias(topicIndex, 'banglish', aliasIndex)}
+                                    className="p-2 bg-red-100 text-red-500 hover:bg-red-200 rounded-r-md"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={handleAddChapter}
+                disabled={loading}
+                className={`px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 flex items-center ${
+                  loading ? 'opacity-75 cursor-not-allowed' : ''
+                }`}
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Adding Chapter...
+                  </>
+                ) : (
+                  'Add Chapter'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

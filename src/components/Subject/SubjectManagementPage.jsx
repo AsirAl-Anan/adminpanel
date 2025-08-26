@@ -14,6 +14,7 @@ const SubjectManagementPage = () => {
   const fetchSubjectData = async () => {
     try {
       const response = await axios.get(`/subject/${id}`);
+      console.log("sub",response.data.data);
       setSubject(response.data.data);
       setError(null);
     } catch (err) {
@@ -34,7 +35,7 @@ const SubjectManagementPage = () => {
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Manage Subject</h1>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="">
         <SubjectDetails subject={subject} onSave={fetchSubjectData} />
         <ChapterList subject={subject} onUpdate={fetchSubjectData} />
       </div>

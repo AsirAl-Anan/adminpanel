@@ -14,7 +14,6 @@ import {
   GraduationCap,
   ChevronDown,
   ChevronUp,
-  Menu,
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
@@ -23,7 +22,6 @@ import axios from '../../config/axios.js';
 import LatexRenderer from './LatexRenderer.jsx';
 import { HashLoader } from 'react-spinners';
 
- 
 const QuestionBankPage = () => {
   const [loading, setLoading] = useState(true);
   const { level, subjectId, group } = useParams();
@@ -37,8 +35,8 @@ const QuestionBankPage = () => {
       if (!response.data.success) {
         setError(response.data.message);
       } else {
-          setLoading(false);
-          console.log(response.data.data);
+        setLoading(false);
+        console.log(response.data.data);
         setQuestions(response.data.data);
       }
     } catch (error) {
@@ -56,7 +54,6 @@ const QuestionBankPage = () => {
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('');
   const [selectedChapter, setSelectedChapter] = useState('');
-  const [selectedDifficulty, setSelectedDifficulty] = useState('');
   const [selectedVersion, setSelectedVersion] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [expandedAnswers, setExpandedAnswers] = useState({});
@@ -68,7 +65,6 @@ const QuestionBankPage = () => {
       topics: [...new Set(questions.map((q) => q.cTopic?.englishName).filter(Boolean))].sort(),
       chapters: [...new Set(questions.map((q) => q.chapter?.englishName).filter(Boolean))].sort(),
       versions: [...new Set(questions.map((q) => q.version))].sort(),
-      difficulties: ['easy', 'medium', 'hard'],
     };
   }, [questions]);
   // Filter questions based on search and filters
@@ -85,7 +81,6 @@ const QuestionBankPage = () => {
       const matchesYear = selectedYear === '' || question.year.toString() === selectedYear;
       const matchesTopic = selectedTopic === '' || question.cTopic?.englishName === selectedTopic;
       const matchesChapter = selectedChapter === '' || question.chapter?.englishName === selectedChapter;
-      const matchesDifficulty = selectedDifficulty === '' || question.difficulty === selectedDifficulty;
       const matchesVersion = selectedVersion === '' || question.version === selectedVersion;
       return (
         matchesSearch &&
@@ -93,7 +88,6 @@ const QuestionBankPage = () => {
         matchesYear &&
         matchesTopic &&
         matchesChapter &&
-        matchesDifficulty &&
         matchesVersion
       );
     });
@@ -103,7 +97,6 @@ const QuestionBankPage = () => {
     selectedYear,
     selectedTopic,
     selectedChapter,
-    selectedDifficulty,
     questions,
     selectedVersion
   ]);
@@ -113,33 +106,9 @@ const QuestionBankPage = () => {
     setSelectedYear('');
     setSelectedTopic('');
     setSelectedChapter('');
-    setSelectedDifficulty('');
     setSelectedVersion('');
   };
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case 'easy':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'hard':
-        return 'bg-red-100 text-red-800 border-red-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-  const getDifficultyIcon = (difficulty) => {
-    switch (difficulty) {
-      case 'easy':
-        return '●';
-      case 'medium':
-        return '●●';
-      case 'hard':
-        return '●●●';
-      default:
-        return '●';
-    }
-  };
+
   const toggleAnswer = (questionId, part) => {
     const key = `${questionId}-${part}`;
     setExpandedAnswers((prev) => ({
@@ -158,14 +127,13 @@ const QuestionBankPage = () => {
     return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
   };
 
-
   if (loading) {
- return <>
-<div className="fixed inset-0 flex items-center justify-center bg-white/10 backdrop-blur-md z-50">
-  <HashLoader color="#36d7b7" />
-</div>
+    return <>
+      <div className="fixed inset-0 flex items-center justify-center bg-white/10 backdrop-blur-md z-50">
+        <HashLoader color="#36d7b7" />
+      </div>
 
- </> 
+    </>
   }
   return (
     <div
@@ -324,35 +292,6 @@ const QuestionBankPage = () => {
                     ))}
                   </select>
                 </div>
-                {/* Difficulty Filter */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">Difficulty</label>
-                  <div className="space-y-1.5">
-                    {filterOptions.difficulties.map((difficulty) => (
-                      <label key={difficulty} className="flex items-center cursor-pointer">
-                        <input
-                          type="radio"
-                          name="difficulty"
-                          value={difficulty}
-                          checked={selectedDifficulty === difficulty}
-                          onChange={(e) => setSelectedDifficulty(e.target.value)}
-                          className="mr-2 text-blue-600 w-3.5 h-3.5"
-                        />
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getDifficultyColor(difficulty)}`}>
-                          {getDifficultyIcon(difficulty)} {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                  {selectedDifficulty && (
-                    <button
-                      onClick={() => setSelectedDifficulty('')}
-                      className="text-xs text-blue-600 hover:text-blue-700 mt-1.5"
-                    >
-                      Clear difficulty filter
-                    </button>
-                  )}
-                </div>
               </div>
             </div>
           </div>
@@ -375,10 +314,9 @@ const QuestionBankPage = () => {
                 {filteredQuestions?.map((question) => (
                   <div
                     key={question?._id}
-                    className={`bg-white rounded-lg shadow-sm border transition-all duration-200 hover:shadow-md ${
-                      question.isNew ? 'border-blue-200 bg-blue-50/30' :
-                        question.isRecent ? 'border-green-200 bg-green-50/30' : 'border-gray-100'
-                    }`}
+                    className={`bg-white rounded-lg shadow-sm border transition-all duration-200 hover:shadow-md ${question.isNew ? 'border-blue-200 bg-blue-50/30' :
+                      question.isRecent ? 'border-green-200 bg-green-50/30' : 'border-gray-100'
+                      }`}
                   >
                     {/* Question Header */}
                     <div className="p-3 sm:p-4 border-b border-gray-50">
@@ -395,29 +333,26 @@ const QuestionBankPage = () => {
                                 Recent
                               </span>
                             )}
-                            
-                            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${getDifficultyColor(question.difficulty)}`}>
-                              {getDifficultyIcon(question.difficulty)} {question.difficulty.charAt(0).toUpperCase() + question.difficulty.slice(1)}
-                            </span>
+
                             {/* Action Buttons */}
-                        <div className="flex items-center gap-1 ml-2 flex-shrink-0">
-                          <NavLink
-  to={`${location.pathname}/${question._id}`}
-  className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
->
-  <Edit size={14} />
-</NavLink>
-                          <button className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200">
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
+                            <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                              <NavLink
+                                to={`${location.pathname}/${question._id}`}
+                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                              >
+                                <Edit size={14} />
+                              </NavLink>
+                              <button className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200">
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
                           </div>
                           <div className="text-sm sm:text-base font-medium text-gray-900 mb-3 leading-relaxed">
-                           <LatexRenderer latex={question.stem} />
-                           {
-                            question?.stemImage && 
-                            ( <div className="flex justify-center"> <img src={question.stemImage} alt="Question Stem" className="mt-4 rounded-lg " /> </div> )
-                           }
+                            <LatexRenderer latex={question.stem} />
+                            {
+                              question?.stemImage &&
+                              (<div className="flex justify-center"> <img src={question.stemImage} alt="Question Stem" className="mt-4 rounded-lg " /> </div>)
+                            }
                           </div>
                           {/* Question Parts */}
                           <div className="space-y-2">
@@ -425,7 +360,7 @@ const QuestionBankPage = () => {
                               <div className="space-y-1.5">
                                 <div className="flex items-start gap-2">
                                   <span className="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-[10px] font-medium min-w-[20px] text-center flex-shrink-0">a</span>
-                                  <p className="text-gray-700 flex-1 text-xs sm:text-sm"> <LatexRenderer  latex={question.a} />  </p>
+                                  <p className="text-gray-700 flex-1 text-xs sm:text-sm"> <LatexRenderer latex={question.a} />  </p>
                                   <button
                                     onClick={() => toggleAnswer(question._id, 'a')}
                                     className="p-0.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-all duration-200 flex-shrink-0"
@@ -456,7 +391,7 @@ const QuestionBankPage = () => {
                                 {isAnswerExpanded(question._id, 'b') && question.bAnswer && (
                                   <div className="ml-7 p-2 bg-green-50 border border-green-200 rounded-lg">
                                     <div className="text-[10px] text-green-600 font-medium mb-0.5">Answer:</div>
-                                    <div className="text-xs text-green-800 whitespace-pre-line"><LatexRenderer  latex={question.bAnswer}/> </div>
+                                    <div className="text-xs text-green-800 whitespace-pre-line"><LatexRenderer latex={question.bAnswer} /> </div>
                                   </div>
                                 )}
                               </div>
@@ -477,8 +412,8 @@ const QuestionBankPage = () => {
                                   <div className="ml-7 p-2 bg-green-50 border border-green-200 rounded-lg">
                                     <div className="text-[10px] text-green-600 font-medium mb-0.5">Answer:</div>
                                     <div className="text-xs text-green-800 whitespace-pre-line"><LatexRenderer latex={question.cAnswer} /></div>
-                                    {question?.cAnswerImage && 
-                                     ( <div className="flex justify-center"> <img src={question.cAnswerImage} alt="Answer Image" className="mt-4 rounded-lg " /> </div> )
+                                    {question?.cAnswerImage &&
+                                      (<div className="flex justify-center"> <img src={question.cAnswerImage} alt="Answer Image" className="mt-4 rounded-lg " /> </div>)
                                     }
                                   </div>
                                 )}
@@ -500,17 +435,17 @@ const QuestionBankPage = () => {
                                   <div className="ml-7 p-2 bg-green-50 border border-green-200 rounded-lg">
                                     <div className="text-[10px] text-green-600 font-medium mb-0.5">Answer:</div>
                                     <div className="text-xs text-green-800 whitespace-pre-line"><LatexRenderer latex={truncateText(question.dAnswer, 100)} /> </div>
-                                    {question?.dAnswerImage && 
-                                     ( <div className="flex justify-center"> <img src={question.cAnswerImage} alt="Answer Image" className="mt-4 rounded-lg " /> </div> )
+                                    {question?.dAnswerImage &&
+                                      (<div className="flex justify-center"> <img src={question.dAnswerImage} alt="Answer Image" className="mt-4 rounded-lg " /> </div>)
                                     }
                                   </div>
-                               
-                               )}
+
+                                )}
                               </div>
                             )}
                           </div>
                         </div>
-                        
+
                       </div>
                     </div>
                     {/* Question Metadata */}
@@ -569,7 +504,7 @@ const QuestionBankPage = () => {
       </div>
       {/* Floating Add Button */}
       <button className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-blue-600 text-white p-2.5 sm:p-3 rounded-full shadow-lg hover:bg-blue-700 hover:scale-110 transition-all duration-200 group z-40">
-       <NavLink to={'/add-cq'}> <Plus size={18} /></NavLink>  
+        <NavLink to={'/add-cq'}> <Plus size={18} /></NavLink>
       </button>
     </div>
   );
