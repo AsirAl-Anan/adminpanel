@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from '../../config/axios';
 // Custom toast functions are now used
 import { showSuccessToast, showErrorToast } from '../toast/Toast';
-import TopicAddOrEditModal from '../modals/topicEditOrAddModal';
+import TopicAddOrEditModal from '../modals/TopicEditOrAddModal';
 
 const TopicList = ({ subjectId, chapterIndex, topics, onUpdate }) => {
   const [isTopicsModalOpen, setIsTopicsModalOpen] = useState(false);
