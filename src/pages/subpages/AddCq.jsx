@@ -61,7 +61,6 @@ const StyledTextarea = (props) => (
     />
 )
 
-// MODIFICATION START: Added a dedicated, reusable PreviewBox component
 const PreviewBox = ({ label, children }) => (
     <div className="mt-4 p-4 bg-slate-100 border border-slate-200 rounded-lg">
         <label className="block text-sm font-bold text-slate-600 mb-2">
@@ -72,9 +71,7 @@ const PreviewBox = ({ label, children }) => (
         </div>
     </div>
 );
-// MODIFICATION END
 
-// MODIFICATION START: Updated QuestionPartInput to use the new PreviewBox
 const QuestionPartInput = ({ partLabel, type, value, onChange, error, isRequired }) => (
     <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
         <FormField label={`${partLabel}) ${type}`} error={error} isRequired={isRequired}>
@@ -90,9 +87,7 @@ const QuestionPartInput = ({ partLabel, type, value, onChange, error, isRequired
         </PreviewBox>
     </div>
 );
-// MODIFICATION END
 
-// MODIFICATION START: Updated AnswerPartInput to use the new PreviewBox
 const AnswerPartInput = ({ partLabel, value, onChange, error, isRequired, imageFile, imagePreview, onImageChange, showImageUploader }) => (
     <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-4">
         <FormField label={`Answer for Option ${partLabel}`} error={error} isRequired={isRequired}>
@@ -116,7 +111,6 @@ const AnswerPartInput = ({ partLabel, value, onChange, error, isRequired, imageF
         )}
     </div>
 );
-// MODIFICATION END
 
 const ImageUploader = ({ imageFile, imagePreview, onImageChange, label }) => {
   const handleFileChange = (e) => {
@@ -264,7 +258,6 @@ const Stepper = ({ currentStep, steps }) => {
     );
 };
 
-// MODIFICATION START: Added a PreviewBox for the stem
 const QuestionEntryStep = ({ version, data, handlers, errors, dynamicTopics, isMathSubject, onAiClick }) => {
     const versionTitle = version.charAt(0).toUpperCase() + version.slice(1);
     const { onInputChange, onImageChange, onTopicChange } = handlers;
@@ -290,27 +283,21 @@ const QuestionEntryStep = ({ version, data, handlers, errors, dynamicTopics, isM
                 <QuestionPartInput partLabel="A" type="Knowledge-based" value={data.a} onChange={(val) => onInputChange('a', val)} error={errors.a} isRequired />
                 <QuestionPartInput partLabel="B" type="Comprehension" value={data.b} onChange={(val) => onInputChange('b', val)} error={errors.b} isRequired />
                 
-                {/* The QuestionPartInput now contains a PreviewBox, so we just wrap the content below */}
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-4">
-                    {/* MODIFICATION NOTE: This is an extra QuestionPartInput component, it should be removed. The original structure seemed complex. I'll simplify it slightly to avoid nesting QuestionPartInput inside another styled div. Let's fix this part. */}
-                    
-                    {/* Correction: The original code was grouping C with its Topic/Type selects. This is correct. The QuestionPartInput for C should be outside this grouping wrapper. No, it was inside. That is strange. I will fix this structure slightly for clarity. The Application part is also a QuestionPartInput. */}
-                    
-                    {/* Re-evaluating the original structure for C and D parts. It nests a `QuestionPartInput` and `FormField`s inside a `div`. This is likely for grouping. My refactoring of QuestionPartInput makes this structure a bit odd. I will adjust it. */}
-                    
+                <div className="space-y-6">
+                    {/* MODIFICATION START: Updated C part to be optional and conditionally required */}
                     <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-4">
-                         <FormField label={`C) Application`} error={errors.c} isRequired>
+                         <FormField label={`C) Application (Optional)`} error={errors.c}>
                             <StyledTextarea value={data.c} onChange={(e) => onInputChange('c', e.target.value)} placeholder={`Enter option C content...`} rows="4" />
                         </FormField>
                         <PreviewBox label="Preview C"><LatexRenderer latex={data.c} /></PreviewBox>
 
-                        <FormField label="Topic for C" isRequired error={errors.cTopic}>
+                        <FormField label="Topic for C" isRequired={!!data.c.trim()} error={errors.cTopic}>
                             <StyledSelect value={data.cTopic?.value?._id || ''} onChange={(e) => onTopicChange('cTopic', e.target.value)} disabled={dynamicTopics.length === 0} error={errors.cTopic}>
                                 <option value="">Select Topic</option>
                                 {dynamicTopics.map(topic => <option key={topic.value._id} value={topic.value._id}>{topic.label}</option>)}
                             </StyledSelect>
                         </FormField>
-                        <FormField label="Question Type for C" isRequired error={errors.cQuestionType}>
+                        <FormField label="Question Type for C" isRequired={!!data.c.trim()} error={errors.cQuestionType}>
                             <StyledSelect
                                 value={data.cQuestionType || ''}
                                 onChange={(e) => onInputChange('cQuestionType', e.target.value)}
@@ -325,20 +312,21 @@ const QuestionEntryStep = ({ version, data, handlers, errors, dynamicTopics, isM
                         </FormField>
                     </div>
 
+                    {/* MODIFICATION START: Updated D part to be optional and conditionally required */}
                     {!isMathSubject && (
                         <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-4">
-                            <FormField label={`D) Higher Order`} error={errors.d} isRequired={!isMathSubject}>
+                            <FormField label={`D) Higher Order (Optional)`} error={errors.d}>
                                 <StyledTextarea value={data.d} onChange={(e) => onInputChange('d', e.target.value)} placeholder={`Enter option D content...`} rows="4" />
                             </FormField>
                             <PreviewBox label="Preview D"><LatexRenderer latex={data.d} /></PreviewBox>
                             
-                            <FormField label="Topic for D" isRequired={!isMathSubject} error={errors.dTopic}>
+                            <FormField label="Topic for D" isRequired={!!data.d.trim()} error={errors.dTopic}>
                                 <StyledSelect value={data.dTopic?.value?._id || ''} onChange={(e) => onTopicChange('dTopic', e.target.value)} disabled={dynamicTopics.length === 0} error={errors.dTopic}>
                                     <option value="">Select Topic</option>
                                     {dynamicTopics.map(topic => <option key={topic.value._id} value={topic.value._id}>{topic.label}</option>)}
                                 </StyledSelect>
                             </FormField>
-                            <FormField label="Question Type for D" isRequired={!isMathSubject} error={errors.dQuestionType}>
+                            <FormField label="Question Type for D" isRequired={!!data.d.trim()} error={errors.dQuestionType}>
                                 <StyledSelect
                                     value={data.dQuestionType || ''}
                                     onChange={(e) => onInputChange('dQuestionType', e.target.value)}
@@ -353,12 +341,12 @@ const QuestionEntryStep = ({ version, data, handlers, errors, dynamicTopics, isM
                             </FormField>
                         </div>
                     )}
+                    {/* MODIFICATION END */}
                 </div>
             </div>
         </div>
     );
 };
-// MODIFICATION END
 
 
 const AnswerEntryStep = ({ data, handlers, errors, isMathSubject, onAiClick }) => {
@@ -371,10 +359,35 @@ const AnswerEntryStep = ({ data, handlers, errors, isMathSubject, onAiClick }) =
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 <AnswerPartInput partLabel="A" value={data.aAnswer} onChange={(val) => onInputChange('aAnswer', val)} error={errors.aAnswer} isRequired />
                 <AnswerPartInput partLabel="B" value={data.bAnswer} onChange={(val) => onInputChange('bAnswer', val)} error={errors.bAnswer} isRequired />
-                <AnswerPartInput partLabel="C" value={data.cAnswer} onChange={(val) => onInputChange('cAnswer', val)} error={errors.cAnswer} isRequired showImageUploader onImageChange={(file, preview) => onImageChange('cAnswer', file, preview)} imageFile={data.cAnswerImageFile} imagePreview={data.cAnswerImagePreview} />
+                {/* MODIFICATION START: Answer C is now required only if Question C has text */}
+                <AnswerPartInput 
+                    partLabel="C" 
+                    value={data.cAnswer} 
+                    onChange={(val) => onInputChange('cAnswer', val)} 
+                    error={errors.cAnswer} 
+                    isRequired={!!data.c.trim()} 
+                    showImageUploader 
+                    onImageChange={(file, preview) => onImageChange('cAnswer', file, preview)} 
+                    imageFile={data.cAnswerImageFile} 
+                    imagePreview={data.cAnswerImagePreview} 
+                />
+                {/* MODIFICATION END */}
+
+                {/* MODIFICATION START: Answer D is now required only if Question D has text */}
                 {!isMathSubject && (
-                    <AnswerPartInput partLabel="D" value={data.dAnswer} onChange={(val) => onInputChange('dAnswer', val)} error={errors.dAnswer} isRequired={!isMathSubject} showImageUploader onImageChange={(file, preview) => onImageChange('dAnswer', file, preview)} imageFile={data.dAnswerImageFile} imagePreview={data.dAnswerImagePreview} />
+                    <AnswerPartInput 
+                        partLabel="D" 
+                        value={data.dAnswer} 
+                        onChange={(val) => onInputChange('dAnswer', val)} 
+                        error={errors.dAnswer} 
+                        isRequired={!!data.d.trim()} 
+                        showImageUploader 
+                        onImageChange={(file, preview) => onImageChange('dAnswer', file, preview)} 
+                        imageFile={data.dAnswerImageFile} 
+                        imagePreview={data.dAnswerImagePreview} 
+                    />
                 )}
+                {/* MODIFICATION END */}
             </div>
         </div>
     );
@@ -513,14 +526,20 @@ const AddCreativeQuestionPage = () => {
                 if (!data.stem.trim()) missingFields.push('Stem');
                 if (!data.a.trim()) missingFields.push('Question A');
                 if (!data.b.trim()) missingFields.push('Question B');
-                if (!data.c.trim()) missingFields.push('Question C');
-                if (!data.cTopic) missingFields.push('Topic for C');
-                if (!data.cQuestionType.trim()) missingFields.push('Question Type for C');
-                if (!isMathSubject) {
-                    if (!data.d.trim()) missingFields.push('Question D');
+
+                // MODIFICATION START: Updated validation for optional C and D parts
+                // Validate C part only if user started filling it
+                if (data.c.trim()) {
+                    if (!data.cTopic) missingFields.push('Topic for C');
+                    if (!data.cQuestionType.trim()) missingFields.push('Question Type for C');
+                }
+
+                // Validate D part only if not Math and user started filling it
+                if (!isMathSubject && data.d.trim()) {
                     if (!data.dTopic) missingFields.push('Topic for D');
                     if (!data.dQuestionType.trim()) missingFields.push('Question Type for D');
                 }
+                // MODIFICATION END
                 break;
             case 4: // English Answer
             case 5: // Bangla Answer
@@ -528,10 +547,18 @@ const AddCreativeQuestionPage = () => {
                 const ansData = formData[ansVersion];
                 if (!ansData.aAnswer.trim()) missingFields.push('Answer for A');
                 if (!ansData.bAnswer.trim()) missingFields.push('Answer for B');
-                if (!ansData.cAnswer.trim()) missingFields.push('Answer for C');
-                if (!isMathSubject && !ansData.dAnswer.trim()) {
+                
+                // MODIFICATION START: Answer for C/D is required only if the respective question exists
+                // If question C exists, its answer is required
+                if (ansData.c.trim() && !ansData.cAnswer.trim()) {
+                    missingFields.push('Answer for C');
+                }
+
+                // If not math and question D exists, its answer is required
+                if (!isMathSubject && ansData.d.trim() && !ansData.dAnswer.trim()) {
                     missingFields.push('Answer for D');
                 }
+                // MODIFICATION END
                 break;
             default:
                 break;
@@ -543,7 +570,7 @@ const AddCreativeQuestionPage = () => {
         const missingFields = validateCurrentStep();
         if (missingFields.length > 0) {
             const fieldNames = missingFields.join(', ');
-            const message = `Please select ${fieldNames} to go to the next step`;
+            const message = `Please fill the required fields: ${fieldNames}`;
             showWarningToast(message);
         } else {
             setStep(s => s + 1);
@@ -581,16 +608,21 @@ const AddCreativeQuestionPage = () => {
         payload.append('b', versionData.b);
         payload.append('bAnswer', versionData.bAnswer);
 
-        payload.append('c', versionData.c);
-        payload.append('cAnswer', versionData.cAnswer);
-        payload.append('cQuestionType', versionData.cQuestionType);
-        payload.append('cType', versionData.cType);
-        if (versionData.cAnswerImageFile) payload.append('cAnswerImage', versionData.cAnswerImageFile);
-        if (versionData.cTopic && versionData.cTopic.value) {
-            const cTopicPayload = { topicId: versionData.cTopic.value._id, englishName: versionData.cTopic.value.englishName, banglaName: versionData.cTopic.value.banglaName };
-            payload.append('cTopic', JSON.stringify(cTopicPayload));
+        // MODIFICATION START: Conditionally append C part data
+        if (versionData.c && versionData.c.trim() !== '') {
+            payload.append('c', versionData.c);
+            payload.append('cAnswer', versionData.cAnswer);
+            payload.append('cQuestionType', versionData.cQuestionType);
+            payload.append('cType', versionData.cType);
+            if (versionData.cAnswerImageFile) payload.append('cAnswerImage', versionData.cAnswerImageFile);
+            if (versionData.cTopic && versionData.cTopic.value) {
+                const cTopicPayload = { topicId: versionData.cTopic.value._id, englishName: versionData.cTopic.value.englishName, banglaName: versionData.cTopic.value.banglaName };
+                payload.append('cTopic', JSON.stringify(cTopicPayload));
+            }
         }
+        // MODIFICATION END
         
+        // This part was already correctly conditional
         if (versionData.d && versionData.d.trim() !== '') {
             payload.append('d', versionData.d);
             payload.append('dAnswer', versionData.dAnswer);
