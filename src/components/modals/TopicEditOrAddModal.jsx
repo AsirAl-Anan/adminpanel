@@ -746,7 +746,7 @@ const ImageCropModal = ({ isOpen, onClose, onConfirm, imageFile }) => {
 // --- EXTRACT SEGMENTS MODAL ---
 const ExtractSegmentsModal = ({ isOpen, onClose, onExtractComplete }) => {
   const [selectedImages, setSelectedImages] = useState([]);
-  const [extractedData, setExtractedData] = useState(null);
+  const [extractedData, setExtractedData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
@@ -768,7 +768,7 @@ const ExtractSegmentsModal = ({ isOpen, onClose, onExtractComplete }) => {
     if (isOpen) {
       selectedImages.forEach(image => URL.revokeObjectURL(image.previewUrl));
       setSelectedImages([]);
-      setExtractedData(null);
+      setExtractedData([]);
       setIsLoading(false);
       setError('');
       setFilesToCropQueue([]);
@@ -846,7 +846,7 @@ const ExtractSegmentsModal = ({ isOpen, onClose, onExtractComplete }) => {
     }
     setIsLoading(true);
     setError('');
-    setExtractedData(null);
+    setExtractedData([]);
     const formData = new FormData();
     selectedImages.forEach(image => {
       formData.append('topic', image.croppedBlob, image.originalFile.name);
@@ -859,7 +859,7 @@ const ExtractSegmentsModal = ({ isOpen, onClose, onExtractComplete }) => {
       const segments = response.data?.result?.data?.summarizedResult?.text;
       if (segments && Array.isArray(segments)) {
         console.log("Extracted segments:", segments);
-        setExtractedData(segments);
+        setExtractedData((prev)=> [...prev, ...segments]);
         showSuccessToast("Segments extracted successfully from images!");
       } else {
         console.error("Unexpected API response structure:", response.data);
@@ -874,7 +874,7 @@ const ExtractSegmentsModal = ({ isOpen, onClose, onExtractComplete }) => {
   };
   
   const handleConfirmImport = () => {
-    if (extractedData) {
+    if (extractedData && extractedData.length > 0) {
         onExtractComplete(extractedData);
         showSuccessToast("Segments imported into the form.");
         onClose();
@@ -929,7 +929,7 @@ const ExtractSegmentsModal = ({ isOpen, onClose, onExtractComplete }) => {
             <button onClick={onClose} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium">Cancel</button>
             <button 
                 onClick={handleConfirmImport} 
-                disabled={!extractedData || !Array.isArray(extractedData) || extractedData.length === 0} 
+                disabled={extractedData.length === 0} 
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:bg-green-300 disabled:cursor-not-allowed">
                   Import Segments
             </button>
