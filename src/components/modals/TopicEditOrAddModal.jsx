@@ -856,12 +856,13 @@ const ExtractSegmentsModal = ({ isOpen, onClose, onExtractComplete }) => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      const segments = response.data?.result?.data?.summarizedResult?.text;
+      const segments = response.data?.result?.data;
       if (segments && Array.isArray(segments)) {
         console.log("Extracted segments:", segments);
         setExtractedData((prev)=> [...prev, ...segments]);
         showSuccessToast("Segments extracted successfully from images!");
       } else {
+        console.log(response.data)
         console.error("Unexpected API response structure:", response.data);
         showErrorToast("Could not parse the extracted data from the server.");
       }
