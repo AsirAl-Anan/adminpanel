@@ -17,10 +17,13 @@ const SubjectsPage = () => {
 
   const fetchSubjects = async () => {
     try {
+      console.log(true)
+      console.log("fetching subjects")
       setLoading(true)
       const res = await axios.get("/subject/subjects")
       console.log(res)
       if (res?.statusText !== "OK") {
+        console.log("error", res)
         setError(res?.data?.message)
         return
       }
