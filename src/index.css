@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Monochrome grayscale theme with darker green accents */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 11%;
+
+    --primary: 150 45% 18%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 11%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 46%;
+
+    --accent: 150 45% 18%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 0% 35%;
+    --destructive-foreground: 0 0% 98%;
+
+    --success: 150 45% 18%;
+    --success-foreground: 0 0% 98%;
+    
+    --danger: 0 0% 35%;
+    --danger-foreground: 0 0% 98%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 150 45% 18%;
+
+    --radius: 1rem;
+
+    /* Gradient with darker green accents */
+    --gradient-from: 150 45% 18%;
+    --gradient-via: 150 35% 25%;
+    --gradient-to: 0 0% 50%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
