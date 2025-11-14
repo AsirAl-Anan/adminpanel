@@ -22,7 +22,7 @@ const SubjectsPage = () => {
       setLoading(true)
       const res = await axios.get("/subject/subjects")
       console.log(res)
-      if (res?.statusText !== "OK") {
+      if (res?.status !== 200) {
         console.log("error", res)
         setError(res?.data?.message)
         return
