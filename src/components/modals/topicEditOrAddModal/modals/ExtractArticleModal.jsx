@@ -16,6 +16,15 @@ const ExtractArticleModal = ({ isOpen, onClose, onExtractComplete }) => {
   const [currentImageToCrop, setCurrentImageToCrop] = useState(null)
   const [editingImage, setEditingImage] = useState(null)
 
+  // --- STATE FOR AI CONTROLS ---
+  const [showControls, setShowControls] = useState(false)
+  const [aiControls, setAiControls] = useState({
+    excludedFields: [],
+    customInstruction: "",
+    sections: { min: 2, max: 8 },
+  })
+
+  // --- Effects ---
   useEffect(() => {
     if (filesToCropQueue.length > 0 && !isCropModalOpen) {
       const nextFile = filesToCropQueue[0]
@@ -27,6 +36,7 @@ const ExtractArticleModal = ({ isOpen, onClose, onExtractComplete }) => {
 
   useEffect(() => {
     if (isOpen) {
+      // Reset all state when modal opens
       selectedImages.forEach((image) => URL.revokeObjectURL(image.previewUrl))
       setSelectedImages([])
       setExtractedArticle(null)
@@ -35,9 +45,41 @@ const ExtractArticleModal = ({ isOpen, onClose, onExtractComplete }) => {
       setFilesToCropQueue([])
       setCurrentImageToCrop(null)
       setEditingImage(null)
+      // Reset AI controls to default
+      setAiControls({
+        excludedFields: [],
+        customInstruction: "",
+        sections: { min: 2, max: 8 },
+      })
+      setShowControls(false)
     }
   }, [isOpen])
 
+  // --- Handlers for AI Controls ---
+  const handleCheckboxChange = (e) => {
+    const { name, checked } = e.target
+    setAiControls((prev) => {
+      const excludedFields = checked
+        ? [...prev.excludedFields, name]
+        : prev.excludedFields.filter((field) => field !== name)
+      return { ...prev, excludedFields }
+    })
+  }
+
+  const handleControlsChange = (e) => {
+    const { name, value, type } = e.target
+    if (name === "min" || name === "max") {
+      const numValue = value === "" ? "" : parseInt(value, 10)
+      setAiControls((prev) => ({
+        ...prev,
+        sections: { ...prev.sections, [name]: numValue },
+      }))
+    } else {
+      setAiControls((prev) => ({ ...prev, [name]: value }))
+    }
+  }
+
+  // --- Handlers for Image Management ---
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files)
     if (files.length + selectedImages.length > 6) {
@@ -52,7 +94,6 @@ const ExtractArticleModal = ({ isOpen, onClose, onExtractComplete }) => {
 
   const handleCropConfirm = (croppedBlob) => {
     const originalFile = editingImage ? editingImage.originalFile : currentImageToCrop
-
     if (editingImage) {
       URL.revokeObjectURL(editingImage.previewUrl)
       const updatedImage = {
@@ -72,7 +113,6 @@ const ExtractArticleModal = ({ isOpen, onClose, onExtractComplete }) => {
       setSelectedImages((prev) => [...prev, newImage])
       setFilesToCropQueue((prev) => prev.slice(1))
     }
-
     setIsCropModalOpen(false)
     setCurrentImageToCrop(null)
   }
@@ -94,43 +134,47 @@ const ExtractArticleModal = ({ isOpen, onClose, onExtractComplete }) => {
 
   const removeImage = (idToRemove) => {
     const imageToRemove = selectedImages.find((img) => img.id === idToRemove)
-    if (imageToRemove) {
-      URL.revokeObjectURL(imageToRemove.previewUrl)
-    }
+    if (imageToRemove) URL.revokeObjectURL(imageToRemove.previewUrl)
     setSelectedImages((prev) => prev.filter((img) => img.id !== idToRemove))
   }
 
+  // --- Main Action Handlers ---
   const handleExtract = async () => {
     if (selectedImages.length === 0) {
       showWarningToast("Please select at least one image.")
       return
     }
+    if (aiControls.sections.min > aiControls.sections.max) {
+        showErrorToast("Min sections cannot be greater than max sections.")
+        return
+    }
     setIsLoading(true)
     setError("")
     setExtractedArticle(null)
+    
     const formData = new FormData()
     selectedImages.forEach((image) => {
       formData.append("article", image.croppedBlob, image.originalFile.name)
     })
+    // Append AI controls to the form data
+    formData.append("aiControls", JSON.stringify(aiControls))
+
     try {
-      const response = await axios.post("/ai/extract-articles", formData, {
+      const response = await axios.post("/ai/extract-article", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       console.log(response)
-
       const articleData = response.data?.result?.data
       if (articleData) {
-        console.log("Extracted article:", articleData)
         setExtractedArticle(articleData)
-        showSuccessToast("Article extracted successfully from images!")
+        showSuccessToast("Article extracted successfully!")
       } else {
-        console.log(response.data)
         console.error("Unexpected API response structure:", response.data)
-        showErrorToast("Could not parse the extracted article data from the server.")
+        showErrorToast("Could not parse the extracted article data.")
       }
     } catch (err) {
       console.error("Error extracting article:", err)
-      showErrorToast(err.response?.data?.message || "Failed to extract article. Please try again.")
+      showErrorToast(err.response?.data?.message || "Failed to extract article.")
     } finally {
       setIsLoading(false)
     }
@@ -148,6 +192,7 @@ const ExtractArticleModal = ({ isOpen, onClose, onExtractComplete }) => {
 
   if (!isOpen) return null
 
+  // --- Render ---
   return (
     <>
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
@@ -166,6 +211,7 @@ const ExtractArticleModal = ({ isOpen, onClose, onExtractComplete }) => {
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            {/* Image Upload Section */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Upload Images (up to 6)</label>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -183,14 +229,7 @@ const ExtractArticleModal = ({ isOpen, onClose, onExtractComplete }) => {
                         className="p-2 bg-white/80 rounded-full text-blue-600 hover:bg-white"
                         title="Edit Crop"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"
-                          />
-                        </svg>
+                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z" /></svg>
                       </button>
                       <button
                         type="button"
@@ -198,14 +237,7 @@ const ExtractArticleModal = ({ isOpen, onClose, onExtractComplete }) => {
                         className="p-2 bg-white/80 rounded-full text-red-600 hover:bg-white"
                         title="Remove Image"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </div>
                   </div>
@@ -215,25 +247,57 @@ const ExtractArticleModal = ({ isOpen, onClose, onExtractComplete }) => {
                     onClick={() => fileInputRef.current?.click()}
                     className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                   >
-                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                    </svg>
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
                     <span className="text-xs text-gray-500 mt-1">Add Image</span>
                   </button>
                 )}
               </div>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                multiple
-                accept="image/*"
-                className="hidden"
-              />
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} multiple accept="image/*" className="hidden" />
               {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             </div>
 
-            <div className="flex justify-center">
+            {/* AI Controls Section */}
+            <div className="border-t border-gray-200 pt-4">
+               <details className="group">
+                <summary className="list-none flex items-center justify-between cursor-pointer text-sm font-medium text-gray-600 hover:text-gray-900">
+                  AI Controls
+                  <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div className="mt-4 space-y-4 animate-in fade-in duration-300">
+                    {/* Excluded Fields */}
+                    <div>
+                        <label className="block text-xs font-semibold text-gray-600 mb-2">Fields to Exclude</label>
+                        <div className="flex flex-wrap gap-x-4 gap-y-2">
+                             <label className="flex items-center space-x-2 text-sm text-gray-700">
+                                <input type="checkbox" name="learningOutcomes" checked={aiControls.excludedFields.includes("learningOutcomes")} onChange={handleCheckboxChange} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                                <span>Learning Outcomes</span>
+                            </label>
+                            <label className="flex items-center space-x-2 text-sm text-gray-700">
+                                <input type="checkbox" name="formulas" checked={aiControls.excludedFields.includes("formulas")} onChange={handleCheckboxChange} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                                <span>Formulas</span>
+                            </label>
+                        </div>
+                    </div>
+                    {/* Section Count */}
+                    <div>
+                        <label className="block text-xs font-semibold text-gray-600 mb-2">Number of Sections</label>
+                        <div className="flex items-center gap-4">
+                           <input type="number" name="min" value={aiControls.sections.min} onChange={handleControlsChange} min="1" className="w-20 p-2 border border-gray-300 rounded-md text-sm" placeholder="Min" />
+                           <span className="text-gray-500">-</span>
+                           <input type="number" name="max" value={aiControls.sections.max} onChange={handleControlsChange} min="1" className="w-20 p-2 border border-gray-300 rounded-md text-sm" placeholder="Max" />
+                        </div>
+                    </div>
+                    {/* Custom Instruction */}
+                    <div>
+                         <label htmlFor="customInstruction" className="block text-xs font-semibold text-gray-600 mb-2">Custom Instruction</label>
+                         <textarea id="customInstruction" name="customInstruction" value={aiControls.customInstruction} onChange={handleControlsChange} rows="2" className="w-full p-2 border border-gray-300 rounded-md text-sm" placeholder="e.g., Focus on definitions and key terms."></textarea>
+                    </div>
+                </div>
+              </details>
+            </div>
+
+            {/* Extract Button */}
+            <div className="flex justify-center pt-4">
               <button
                 onClick={handleExtract}
                 disabled={isLoading || selectedImages.length === 0}
@@ -241,32 +305,10 @@ const ExtractArticleModal = ({ isOpen, onClose, onExtractComplete }) => {
               >
                 {isLoading ? (
                   <>
-                    {" "}
-                    <svg
-                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>{" "}
-                    Extracting...{" "}
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Extracting...
                   </>
-                ) : (
-                  "Extract Article"
-                )}
+                ) : ( "Extract Article" )}
               </button>
             </div>
           </div>

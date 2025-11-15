@@ -7,7 +7,7 @@ import ImageCropModal from "./ImageCropModal.jsx"
 
 const ExtractTopicModal = ({ isOpen, onClose, onExtractComplete }) => {
   const [selectedImages, setSelectedImages] = useState([])
-  const [extractedTopic, setExtractedTopic] = useState(null) // Changed from array to single object
+  const [extractedTopic, setExtractedTopic] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const fileInputRef = useRef(null)
@@ -15,6 +15,29 @@ const ExtractTopicModal = ({ isOpen, onClose, onExtractComplete }) => {
   const [filesToCropQueue, setFilesToCropQueue] = useState([])
   const [currentImageToCrop, setCurrentImageToCrop] = useState(null)
   const [editingImage, setEditingImage] = useState(null)
+
+  // State for AI controls
+  const [aiControls, setAiControls] = useState({
+    excludedFields: [],
+    customInstruction: "",
+    articles: { min: 1, max: 3 },
+    sections: { min: 2, max: 5 },
+  })
+  
+  // State for advanced settings accordion
+  const [isAdvancedSettingsOpen, setIsAdvancedSettingsOpen] = useState(false)
+
+  // REVISED: Only include the fields that the AI can be controlled to exclude.
+  // Other fields are excluded by default and not shown here.
+  const availableFields = [
+    "name",
+    "description",
+    "aliases",
+    "tags",
+    "learningOutcomes",
+    "formulas"
+  ];
+
 
   useEffect(() => {
     if (filesToCropQueue.length > 0 && !isCropModalOpen) {
@@ -29,12 +52,21 @@ const ExtractTopicModal = ({ isOpen, onClose, onExtractComplete }) => {
     if (isOpen) {
       selectedImages.forEach((image) => URL.revokeObjectURL(image.previewUrl))
       setSelectedImages([])
-      setExtractedTopic(null) // Reset to null
+      setExtractedTopic(null)
       setIsLoading(false)
       setError("")
       setFilesToCropQueue([])
       setCurrentImageToCrop(null)
       setEditingImage(null)
+      // Reset AI controls on open
+      setAiControls({
+        excludedFields: [],
+        customInstruction: "",
+        articles: { min: 1, max: 3 },
+        sections: { min: 2, max: 5 },
+      })
+      // Close accordion on modal open
+      setIsAdvancedSettingsOpen(false)
     }
   }, [isOpen])
 
@@ -100,6 +132,40 @@ const ExtractTopicModal = ({ isOpen, onClose, onExtractComplete }) => {
     setSelectedImages((prev) => prev.filter((img) => img.id !== idToRemove))
   }
 
+  const handleAiControlChange = (e) => {
+    const { name, value, type, checked } = e.target;
+  
+    if (type === "checkbox") {
+      setAiControls(prev => ({
+        ...prev,
+        excludedFields: checked 
+          ? [...prev.excludedFields, name]
+          : prev.excludedFields.filter(field => field !== name)
+      }));
+    } else if (name.includes("articles.") || name.includes("sections.")) {
+      const [group, key] = name.split(".");
+      let numValue = parseInt(value, 10);
+  
+      // Enforce min/max constraints
+      if (isNaN(numValue) || numValue < 1) numValue = 1;
+      if (numValue > 10) numValue = 10;
+  
+      setAiControls(prev => {
+        const newGroup = { ...prev[group], [key]: numValue };
+        // Ensure min is not greater than max
+        if (key === 'min' && newGroup.min > newGroup.max) {
+          newGroup.max = newGroup.min;
+        }
+        if (key === 'max' && newGroup.max < newGroup.min) {
+          newGroup.min = newGroup.max;
+        }
+        return { ...prev, [group]: newGroup };
+      });
+    } else {
+      setAiControls(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
   const handleExtract = async () => {
     if (selectedImages.length === 0) {
       showWarningToast("Please select at least one image.")
@@ -107,11 +173,16 @@ const ExtractTopicModal = ({ isOpen, onClose, onExtractComplete }) => {
     }
     setIsLoading(true)
     setError("")
-    setExtractedTopic(null) // Reset to null before new extraction
+    setExtractedTopic(null)
     const formData = new FormData()
     selectedImages.forEach((image) => {
       formData.append("topic", image.croppedBlob, image.originalFile.name)
     })
+
+    // Append AI controls to the form data
+    formData.append("aiControls", JSON.stringify(aiControls));
+
+
     try {
       const response = await axios.post("/ai/extract-topic", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -233,7 +304,124 @@ const ExtractTopicModal = ({ isOpen, onClose, onExtractComplete }) => {
               {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             </div>
 
-            <div className="flex justify-center">
+            {/* Advanced AI Settings Accordion */}
+            <div className="border-t border-gray-200 pt-6">
+              {/* Accordion Trigger */}
+              <button
+                type="button"
+                onClick={() => setIsAdvancedSettingsOpen(!isAdvancedSettingsOpen)}
+                className="w-full flex justify-between items-center text-left text-md font-semibold text-gray-800"
+                aria-expanded={isAdvancedSettingsOpen}
+              >
+                <span>Advanced AI Settings</span>
+                <svg
+                  className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${isAdvancedSettingsOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* Accordion Content - Conditionally Rendered */}
+              {isAdvancedSettingsOpen && (
+                <div className="mt-4 space-y-6 animate-in fade-in-0 slide-in-from-top-2 duration-300">
+                  {/* Fields to Exclude */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Don't Generate These Fields</label>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-x-4 gap-y-2">
+                      {availableFields.map(field => (
+                        <label key={field} className="flex items-center space-x-2 text-sm text-gray-600">
+                          <input
+                            type="checkbox"
+                            name={field}
+                            checked={aiControls.excludedFields.includes(field)}
+                            onChange={handleAiControlChange}
+                            className="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
+                          />
+                          <span>{field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Custom Instruction */}
+                  <div>
+                    <label htmlFor="customInstruction" className="block text-sm font-medium text-gray-700 mb-1">
+                      Custom Instruction
+                    </label>
+                    <textarea
+                      id="customInstruction"
+                      name="customInstruction"
+                      rows="3"
+                      value={aiControls.customInstruction}
+                      onChange={handleAiControlChange}
+                      className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      placeholder="e.g., Summarize in a formal tone, focus on historical context."
+                    ></textarea>
+                  </div>
+
+                  {/* Article and Section Counts */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Article Count</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          name="articles.min"
+                          value={aiControls.articles.min}
+                          onChange={handleAiControlChange}
+                          min="1"
+                          max="10"
+                          className="w-full p-2 border border-gray-300 rounded-md shadow-sm text-sm"
+                          placeholder="Min"
+                        />
+                        <span className="text-gray-500">–</span>
+                        <input
+                          type="number"
+                          name="articles.max"
+                          value={aiControls.articles.max}
+                          onChange={handleAiControlChange}
+                          min="1"
+                          max="10"
+                          className="w-full p-2 border border-gray-300 rounded-md shadow-sm text-sm"
+                          placeholder="Max"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Sections per Article</label>
+                      <div className="flex items-center gap-2">
+                         <input
+                          type="number"
+                          name="sections.min"
+                          value={aiControls.sections.min}
+                          onChange={handleAiControlChange}
+                          min="1"
+                          max="10"
+                          className="w-full p-2 border border-gray-300 rounded-md shadow-sm text-sm"
+                          placeholder="Min"
+                        />
+                        <span className="text-gray-500">–</span>
+                        <input
+                          type="number"
+                          name="sections.max"
+                          value={aiControls.sections.max}
+                          onChange={handleAiControlChange}
+                          min="1"
+                          max="10"
+                          className="w-full p-2 border border-gray-300 rounded-md shadow-sm text-sm"
+                          placeholder="Max"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-center border-t border-gray-200 pt-6">
               <button
                 onClick={handleExtract}
                 disabled={isLoading || selectedImages.length === 0}
@@ -241,7 +429,6 @@ const ExtractTopicModal = ({ isOpen, onClose, onExtractComplete }) => {
               >
                 {isLoading ? (
                   <>
-                    {" "}
                     <svg
                       className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                       xmlns="http://www.w3.org/2000/svg"
@@ -261,8 +448,8 @@ const ExtractTopicModal = ({ isOpen, onClose, onExtractComplete }) => {
                         fill="currentColor"
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
-                    </svg>{" "}
-                    Extracting...{" "}
+                    </svg>
+                    Extracting...
                   </>
                 ) : (
                   "Extract Topic"

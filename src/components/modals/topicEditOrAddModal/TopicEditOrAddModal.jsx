@@ -386,14 +386,16 @@ const TopicAddOrEditModal = ({
     }))
   }
 
-  const handleArticleExtractComplete = (apiSections) => {
-    if (!apiSections || !Array.isArray(apiSections)) {
-      showErrorToast("Invalid sections data received from AI.")
+  const handleArticleExtractComplete = (extractedArticleData) => {
+    // Validate that extractedArticleData is an object and contains a sections array
+    if (!extractedArticleData || !Array.isArray(extractedArticleData.sections)) {
+      showErrorToast("Invalid article data received from AI.")
       return
     }
 
-    const newFormattedSections = apiSections.map((section) => {
+    const newFormattedSections = extractedArticleData.sections.map((section) => {
       return {
+        id: uuid(), // Add unique ID for new sections
         title: section.title || { en: "", bn: "" },
         body: section.body || { en: "", bn: "" },
         images: section.images || [],
@@ -406,6 +408,29 @@ const TopicAddOrEditModal = ({
     setNewTopic((prev) => {
       const newState = structuredClone(prev)
       const activeArticleIndex = parseInt(activeTab.split("-")[1], 10)
+
+      // Ensure the active article exists before updating its properties
+      if (!newState.articles[activeArticleIndex]) {
+        // If for some reason the article doesn't exist, create a new one
+        // This scenario should ideally be prevented by UI logic, but good for robustness
+        newState.articles[activeArticleIndex] = {
+          id: uuid(),
+          learningOutcomes: { en: [], bn: [] },
+          formulas: [],
+          sections: [],
+          relatedCreativeQuestions: [],
+          relatedMCQs: [],
+          relatedQuestions: [],
+        };
+      }
+
+      // Update article name, body, and learning outcomes
+      newState.articles[activeArticleIndex].name = extractedArticleData.name || { en: "", bn: "" };
+      newState.articles[activeArticleIndex].body = extractedArticleData.body || { en: "", bn: "" };
+      newState.articles[activeArticleIndex].learningOutcomes = extractedArticleData.learningOutcomes || { en: [], bn: [] };
+
+
+      // Ensure sections array exists and push new sections
       if (!newState.articles[activeArticleIndex].sections) {
         newState.articles[activeArticleIndex].sections = []
       }
