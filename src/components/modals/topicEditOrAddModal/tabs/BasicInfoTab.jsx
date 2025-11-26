@@ -1,6 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import BilingualInput from '../ui/BilingualInput';
 import DynamicListItem from '../ui/DynamicListItem';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../../../components/ui/select"; // Import Select components
 
 const BasicInfoTab = ({
   newTopic,
@@ -8,8 +15,6 @@ const BasicInfoTab = ({
   addAliasField,
   removeAliasField,
 }) => {
-
-
   return (
     <div className="space-y-8">
       <BilingualInput label="Topic Name" fieldName="name" englishValue={newTopic.name?.en} banglaValue={newTopic.name?.bn} onUpdate={handleUpdate} required />
@@ -101,6 +106,7 @@ const BasicInfoTab = ({
           />
         </div>
       </section>
+
     </div>
   );
 };

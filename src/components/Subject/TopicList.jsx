@@ -34,6 +34,7 @@ const TopicList = ({ subjectId, chapterId, topics, onUpdate, subjectLevel, subje
     level: subjectLevel,
     group: subjectGroup,
     articles: [],
+    questionTypes: [],
   })
 
   // The draft logic remains correct and untouched.
@@ -61,6 +62,7 @@ const TopicList = ({ subjectId, chapterId, topics, onUpdate, subjectLevel, subje
         tags: topic.tags || [],
         level: subjectLevel,
         group: subjectGroup,
+        questionTypes: topic.questionTypes || [],
         articles:
           topic.articles?.length > 0
             ? topic.articles.map((article) => ({

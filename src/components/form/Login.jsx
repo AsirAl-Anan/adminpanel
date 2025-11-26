@@ -136,31 +136,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  disabled={isLoading}
-                  className="h-4 w-4 text-primary focus:ring-ring border-border rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-foreground">
-                  Remember me
-                </label>
-              </div>
-              <div className="text-sm">
-                <button
-                  type="button"
-                  disabled={isLoading}
-                  className="text-primary hover:opacity-80 font-medium transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Forgot password?
-                </button>
-              </div>
-            </div>
-
+        
             {/* Submit Button */}
             <button
               type="submit"
@@ -181,7 +157,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-muted-foreground text-sm">
-          <p>© 2025 Uttor.ai . All rights reserved.</p>
+          <p>© 2025 uttor.net . All rights reserved.</p>
         </div>
       </div>
     </div>

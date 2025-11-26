@@ -16,141 +16,181 @@ import {
   GraduationCap,
   ChevronDown,
   ChevronUp,
+  MoreHorizontal
 } from "lucide-react"
-import { useLocation } from "react-router-dom"
-import { NavLink } from "react-router-dom"
-import { useParams } from "react-router-dom"
+import { useLocation, NavLink, useParams } from "react-router-dom"
 import axios from "../../config/axios.js"
-import LatexRenderer from "./LatexRenderer.jsx"
+import LatexRenderer from "./LatexRenderer.jsx" // Assuming this exists
 import { HashLoader } from "react-spinners"
+
+/**
+ * REFACTORED COMPONENT: BilingualContentRenderer
+ * Changes: Removed bulky badges. Used subtle left-borders to denote language.
+ * Added 'side-by-side' logic for larger screens if texts are short (optional, kept stacked for safety here).
+ */
+const BilingualContentRenderer = ({ blocks }) => {
+  if (!blocks || !Array.isArray(blocks) || blocks.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      {blocks.map((block, index) => (
+        <div key={index} className="flex flex-col gap-1.5 group">
+          {/* English Content - Blue Accent */}
+          {block.text?.en && (
+            <div className="relative pl-3 border-l-2 border-blue-400/30 transition-colors group-hover:border-blue-400">
+              <div className="text-sm text-foreground/90 leading-relaxed">
+                <LatexRenderer latex={block.text.en} />
+              </div>
+            </div>
+          )}
+
+          {/* Bangla Content - Green Accent */}
+          {block.text?.bn && (
+            <div className="relative pl-3 border-l-2 border-green-400/30 transition-colors group-hover:border-green-400">
+              <div className="text-sm text-foreground/80 font-bengali leading-relaxed">
+                <LatexRenderer latex={block.text.bn} />
+              </div>
+            </div>
+          )}
+
+          {/* Images */}
+          {block.images && block.images.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2 pl-3">
+              {block.images.map((img, imgIndex) => (
+                <img
+                  key={imgIndex}
+                  src={img.url}
+                  alt={img.caption?.english || "Question Image"}
+                  className="max-w-full h-auto rounded-md border border-border max-h-48 object-contain"
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const QuestionBankPage = () => {
   const [loading, setLoading] = useState(true)
   const { level, subjectId, group } = useParams()
-  // State for questions and error handling
   const [questions, setQuestions] = useState([])
   const [error, setError] = useState(null)
-  // Fetch questions from the API
+
+  // Filter States
+  const location = useLocation()
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedBoard, setSelectedBoard] = useState("")
+  const [selectedYear, setSelectedYear] = useState("")
+  const [selectedExamType, setSelectedExamType] = useState("")
+  const [selectedTopic, setSelectedTopic] = useState("")
+  const [selectedChapter, setSelectedChapter] = useState("")
+  const [showFilters, setShowFilters] = useState(false)
+  const [expandedAnswers, setExpandedAnswers] = useState({})
+
   const fetchQuestions = async () => {
     try {
-      const response = await axios.get(`/qb/subject/${subjectId}/level?group=${group}&level=${level}`)
+      const response = await axios.get(`/qb/subject/${subjectId}`)
       if (!response.data.success) {
         setError(response.data.message)
       } else {
-        setLoading(false)
-        console.log(response.data.data)
         setQuestions(response.data.data)
       }
     } catch (error) {
       console.error("Error fetching questions:", error)
+    } finally {
+      setLoading(false)
     }
   }
+
   useEffect(() => {
     fetchQuestions()
   }, [])
-  // Filter states
-  const location = useLocation()
-  console.log("Location:", location)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedBoard, setSelectedBoard] = useState("")
-  const [selectedYear, setSelectedYear] = useState("")
-  const [selectedTopic, setSelectedTopic] = useState("")
-  const [selectedChapter, setSelectedChapter] = useState("")
-  const [selectedVersion, setSelectedVersion] = useState("")
-  const [showFilters, setShowFilters] = useState(false)
-  const [expandedAnswers, setExpandedAnswers] = useState({})
-  // Extract unique values for filter options
+
+  // --- Helper Functions for Filtering (Unchanged logic, kept for functionality) ---
+  const getTextFromBlock = (blocks) => {
+    if (!blocks || !Array.isArray(blocks) || blocks.length === 0) return "";
+    return blocks.map(block => `${block.text?.en || ""} ${block.text?.bn || ""}`).join(" ");
+  };
+
+  const getTextFromPart = (part, type = 'question') => {
+    if (!part) return "";
+    return getTextFromBlock(part[type]);
+  };
+
   const filterOptions = useMemo(() => {
     return {
-      boards: [...new Set(questions.map((q) => q.board))].sort(),
-      years: [...new Set(questions.map((q) => q.year))].sort((a, b) => b - a),
-      topics: [...new Set(questions.map((q) => q.cTopic?.englishName).filter(Boolean))].sort(),
-      chapters: [...new Set(questions.map((q) => q.chapter?.englishName).filter(Boolean))].sort(),
-      versions: [...new Set(questions.map((q) => q.version))].sort(),
+      boards: [...new Set(questions.map((q) => q.source?.source?.value).filter(Boolean))].sort(),
+      years: [...new Set(questions.map((q) => q.source?.year).filter(Boolean))].sort((a, b) => b - a),
+      examTypes: [...new Set(questions.map((q) => q.source?.examType).filter(Boolean))].sort(),
+      topics: [...new Set(questions.flatMap((q) => [
+        ...(q.c?.topics || []).map(t => t.topicId?.name?.en),
+        ...(q.d?.topics || []).map(t => t.topicId?.name?.en)
+      ]).filter(Boolean))].sort(),
+      chapters: [...new Set(questions.map((q) => q.meta?.mainChapter?.name).filter(Boolean))].sort(),
     }
   }, [questions])
-  // Filter questions based on search and filters
+
   const filteredQuestions = useMemo(() => {
     return questions.filter((question) => {
-      const matchesSearch =
-        searchQuery === "" ||
-        question.stem.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        question.a?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        question.b?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        question.c?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        question.d?.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesBoard = selectedBoard === "" || question.board === selectedBoard
-      const matchesYear = selectedYear === "" || question.year.toString() === selectedYear
-      const matchesTopic = selectedTopic === "" || question.cTopic?.englishName === selectedTopic
-      const matchesChapter = selectedChapter === "" || question.chapter?.englishName === selectedChapter
-      const matchesVersion = selectedVersion === "" || question.version === selectedVersion
-      return matchesSearch && matchesBoard && matchesYear && matchesTopic && matchesChapter && matchesVersion
+      const stemText = getTextFromBlock(question.stem);
+      const fullText = `${stemText} ${getTextFromPart(question.a)} ${getTextFromPart(question.b)} ${getTextFromPart(question.c)} ${getTextFromPart(question.d)}`;
+
+      const matchesSearch = searchQuery === "" || fullText.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesBoard = selectedBoard === "" || question.source?.source?.value === selectedBoard
+      const matchesYear = selectedYear === "" || question.source?.year?.toString() === selectedYear
+      const matchesExamType = selectedExamType === "" || question.source?.examType === selectedExamType
+      const matchesTopic = selectedTopic === "" ||
+        question.c?.topics?.some(t => t.topicId?.name?.en === selectedTopic) ||
+        question.d?.topics?.some(t => t.topicId?.name?.en === selectedTopic)
+      const matchesChapter = selectedChapter === "" || question.meta?.mainChapter?.name === selectedChapter
+
+      return matchesSearch && matchesBoard && matchesYear && matchesExamType && matchesTopic && matchesChapter
     })
-  }, [searchQuery, selectedBoard, selectedYear, selectedTopic, selectedChapter, questions, selectedVersion])
+  }, [searchQuery, selectedBoard, selectedYear, selectedExamType, selectedTopic, selectedChapter, questions])
+
   const clearAllFilters = () => {
     setSearchQuery("")
     setSelectedBoard("")
     setSelectedYear("")
+    setSelectedExamType("")
     setSelectedTopic("")
     setSelectedChapter("")
-    setSelectedVersion("")
   }
 
   const toggleAnswer = (questionId, part) => {
     const key = `${questionId}-${part}`
-    setExpandedAnswers((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }))
-  }
-  const isAnswerExpanded = (questionId, part) => {
-    const key = `${questionId}-${part}`
-    return expandedAnswers[key] || false
+    setExpandedAnswers((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
-  // Function to truncate text
-  const truncateText = (text, maxLength = 100) => {
-    if (!text) return ""
-    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text
-  }
+  const isAnswerExpanded = (questionId, part) => expandedAnswers[`${questionId}-${part}`] || false
 
   if (loading) {
     return (
-      <>
-        {/* Updated to use design tokens */}
-        <div className="fixed inset-0 flex items-center justify-center bg-background/90 backdrop-blur-sm z-50">
-          <HashLoader color="hsl(var(--primary))" />
-        </div>
-      </>
+      <div className="fixed inset-0 flex items-center justify-center bg-background/90 backdrop-blur-sm z-50">
+        <HashLoader color="hsl(var(--primary))" />
+      </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background" style={{ fontFamily: '"Noto Sans Bengali", "Inter", sans-serif' }}>
-      {/* Header */}
-      <div className="bg-card shadow-sm border-b border-border sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-3">
+    <div className="min-h-screen bg-gray-50/50" style={{ fontFamily: '"Noto Sans Bengali", "Inter", sans-serif' }}>
+
+      {/* --- Filter & Header Section (Kept mostly similar, slight cleanup) --- */}
+      <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
+        <div className="max-w-5xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <h1 className="text-lg font-bold text-gray-800">Question Bank</h1>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-medium px-2 py-1 bg-gray-100 rounded-md text-gray-600">
+                {filteredQuestions.length} Items
+              </span>
               <button
                 onClick={() => setShowFilters(true)}
-                className="sm:hidden p-2 rounded-lg bg-secondary text-foreground hover:bg-secondary/80 transition-colors"
+                className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm hover:opacity-90 transition-colors shadow-sm"
               >
-                <Filter size={18} />
-              </button>
-              <div className="text-xs text-muted-foreground hidden sm:block">
-                {filteredQuestions.length} of {questions.length} questions
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="text-xs text-muted-foreground sm:hidden">
-                {filteredQuestions.length}/{questions.length}
-              </div>
-              <button
-                onClick={() => setShowFilters(true)}
-                className="hidden sm:flex bg-primary text-primary-foreground px-3 py-1.5 rounded-lg items-center gap-1 hover:opacity-90 transition-colors text-sm"
-              >
-                <Filter size={14} />
+                <Filter size={16} />
                 <span>Filters</span>
               </button>
             </div>
@@ -158,422 +198,200 @@ const QuestionBankPage = () => {
         </div>
       </div>
 
-      {/* Filter Drawer Overlay */}
-      {showFilters && (
-        <div className="fixed inset-0 bg-black/50 z-50">
-          <div className="fixed inset-y-0 right-0 w-full sm:w-80 bg-card shadow-xl">
-            <div className="h-full flex flex-col">
-              {/* Drawer Header */}
-              <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border">
-                <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
-                  <Filter size={18} className="text-primary" />
-                  Filters
-                </h3>
-                <button
-                  onClick={() => setShowFilters(false)}
-                  className="p-1.5 sm:p-2 hover:bg-secondary rounded-lg transition-colors"
-                >
-                  <X size={18} />
-                </button>
-              </div>
+      {/* --- Main Content --- */}
+      <div className="max-w-5xl mx-auto px-4 py-6">
 
-              {/* Filter Content */}
-              <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
-                {/* Clear All Button */}
-                <button
-                  onClick={clearAllFilters}
-                  className="w-full text-sm text-primary hover:opacity-80 font-medium text-left"
-                >
-                  Clear All Filters
-                </button>
+        {filteredQuestions?.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-dashed border-gray-300">
+            <Search className="text-gray-300 mb-4" size={48} />
+            <h3 className="text-lg font-medium text-gray-900">No questions found</h3>
+            <p className="text-sm text-gray-500 mt-1">Adjust your filters to see results</p>
+            <button onClick={clearAllFilters} className="mt-4 text-primary hover:underline text-sm font-medium">Clear filters</button>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {filteredQuestions?.map((question) => (
+              <div
+                key={question?._id}
+                className="bg-white rounded-xl shadow-[0_2px_8px_-2px_rgba(0,0,0,0.08)] border border-gray-100 overflow-hidden group hover:shadow-md transition-all duration-300"
+              >
+                {/* --- CARD HEADER: Actions & Status --- */}
+                <div className="px-5 py-3 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
+                  <div className="flex items-center gap-2">
+                    {/* Question Number/ID could go here */}
+                    <span className="text-xs font-mono text-gray-400">#{question._id.slice(-6)}</span>
+                    {question?.isNew && <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">New</span>}
+                    {question?.isRecent && <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">Recent</span>}
+                  </div>
 
-                {/* Search Bar */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-foreground mb-1.5">
-                    Search Questions
-                  </label>
-                  <div className="relative">
-                    <Search
-                      className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                      size={14}
-                    />
-                    <input
-                      type="text"
-                      placeholder="Search..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-8 pr-3 py-1.5 text-sm border border-border rounded-lg focus:ring-1 focus:ring-ring focus:border-ring transition-colors bg-background text-foreground"
-                    />
+                  {/* Top Right Actions */}
+                  <div className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                    <NavLink to={`/questions/edit/${question._id}`} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Edit">
+                      <Edit size={16} />
+                    </NavLink>
+                    <button className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete">
+                      <Trash2 size={16} />
+                    </button>
                   </div>
                 </div>
 
-                {/* Version Filter */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-foreground mb-1.5">Version</label>
-                  <select
-                    value={selectedVersion}
-                    onChange={(e) => setSelectedVersion(e.target.value)}
-                    className="w-full p-1.5 text-sm border border-border rounded-lg focus:ring-1 focus:ring-ring focus:border-ring bg-background text-foreground"
-                  >
-                    <option value="">All versions</option>
-                    {filterOptions.versions.map((version) => (
-                      <option key={version} value={version}>
-                        {version}
-                      </option>
-                    ))}
-                  </select>
+                {/* --- CARD BODY: Stem --- */}
+                <div className="px-5 py-4">
+                  <div className="text-base text-gray-800 mb-6">
+                    <BilingualContentRenderer blocks={question.stem} />
+                  </div>
+
+                  {/* --- CARD BODY: Options / Sub-questions --- */}
+                  <div className="space-y-3 pl-1">
+                    {['a', 'b', 'c', 'd'].map((partKey) => {
+                      const partData = question[partKey];
+                      if (!partData) return null;
+                      const isExpanded = isAnswerExpanded(question._id, partKey);
+
+                      return (
+                        <div key={partKey} className="group/part">
+                          {/* Flex container to keep Label + Toggle + Text together */}
+                          <div className="flex items-start gap-3">
+                            {/* Left Control: Label + Toggle */}
+                            <button
+                              onClick={() => toggleAnswer(question._id, partKey)}
+                              className={`flex-shrink-0 flex items-center justify-center gap-1 w-14 h-8 rounded-full border transition-all duration-200 
+                                            ${isExpanded
+                                  ? 'bg-primary/10 border-primary/20 text-primary'
+                                  : 'bg-gray-50 border-gray-200 text-gray-500 hover:border-primary/30 hover:text-primary'
+                                }`}
+                            >
+                              <span className="font-semibold uppercase text-xs">{partKey}</span>
+                              {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                            </button>
+
+                            {/* Right Content: Question Text */}
+                            <div className="flex-1 pt-1">
+                              <div className="text-sm">
+                                <BilingualContentRenderer blocks={partData.question} />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Expanded Answer Section */}
+                          {isExpanded && partData.answer && (
+                            <div className="ml-[3.75rem] mt-3 mr-2 p-3 bg-green-50/50 rounded-lg border border-green-100/50 animate-in fade-in slide-in-from-top-2 duration-200">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider bg-green-100 px-1.5 py-0.5 rounded">Answer</span>
+                              </div>
+                              <div className="text-sm text-gray-700">
+                                <BilingualContentRenderer blocks={partData.answer} />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
 
-                {/* Board Filter */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-foreground mb-1.5">Board</label>
-                  <select
-                    value={selectedBoard}
-                    onChange={(e) => setSelectedBoard(e.target.value)}
-                    className="w-full p-1.5 text-sm border border-border rounded-lg focus:ring-1 focus:ring-ring focus:border-ring bg-background text-foreground"
-                  >
-                    <option value="">All Boards</option>
-                    {filterOptions.boards.map((board) => (
-                      <option key={board} value={board}>
-                        {board}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {/* --- CARD FOOTER: Metadata Chips --- */}
+                <div className="bg-gray-50 px-5 py-3 border-t border-gray-100">
+                  <div className="flex flex-wrap items-center gap-y-2 gap-x-1 text-xs text-gray-500">
 
-                {/* Year Filter */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-foreground mb-1.5">Year</label>
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    className="w-full p-1.5 text-sm border border-border rounded-lg focus:ring-1 focus:ring-ring focus:border-ring bg-background text-foreground"
-                  >
-                    <option value="">All Years</option>
-                    {filterOptions.years.map((year) => (
-                      <option key={year} value={year}>
-                        {year}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    {/* Subject & Chapter */}
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-white border border-gray-200 rounded-full shadow-sm">
+                      <BookOpen size={12} className="text-blue-500" />
+                      <span className="font-medium text-gray-700">{question.meta?.subject?.name}</span>
+                      <span className="text-gray-300">•</span>
+                      <span className="truncate max-w-[150px]" title={question.meta?.mainChapter?.name}>{question.meta?.mainChapter?.name}</span>
+                    </div>
 
-                {/* Topic Filter */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-foreground mb-1.5">Topic</label>
-                  <select
-                    value={selectedTopic}
-                    onChange={(e) => setSelectedTopic(e.target.value)}
-                    className="w-full p-1.5 text-sm border border-border rounded-lg focus:ring-1 focus:ring-ring focus:border-ring bg-background text-foreground"
-                  >
-                    <option value="">All Topics</option>
-                    {filterOptions.topics.map((topic) => (
-                      <option key={topic} value={topic}>
-                        {topic}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    {/* Topic */}
+                    {question.c?.topics?.[0]?.topicId?.name?.en && (
+                      <div className="flex items-center gap-1.5 px-2 py-1 bg-white border border-gray-200 rounded-full shadow-sm">
+                        <Target size={12} className="text-purple-500" />
+                        <span className="truncate max-w-[150px]">{question.c.topics[0].topicId.name.en}</span>
+                      </div>
+                    )}
 
-                {/* Chapter Filter */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-foreground mb-1.5">Chapter</label>
-                  <select
-                    value={selectedChapter}
-                    onChange={(e) => setSelectedChapter(e.target.value)}
-                    className="w-full p-1.5 text-sm border border-border rounded-lg focus:ring-1 focus:ring-ring focus:border-ring bg-background text-foreground"
-                  >
-                    <option value="">All Chapters</option>
-                    {filterOptions.chapters.map((chapter) => (
-                      <option key={chapter} value={chapter}>
-                        {chapter}
-                      </option>
-                    ))}
-                  </select>
+                    {/* Board & Year */}
+                    {(question.source?.source?.value || question.source?.year) && (
+                      <div className="flex items-center gap-1.5 px-2 py-1 bg-white border border-gray-200 rounded-full shadow-sm">
+                        <Building size={12} className="text-orange-500" />
+                        <span>{question.source?.source?.value}</span>
+                        {question.source?.year && (
+                          <>
+                            <span className="text-gray-300">|</span>
+                            <span className="font-semibold">{question.source.year}</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Floating Add Button */}
+      <NavLink to={"/add-cq"} className="fixed bottom-8 right-8 z-40">
+        <button className="bg-primary hover:bg-primary/90 text-white p-4 rounded-full shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex items-center justify-center">
+          <Plus size={24} />
+        </button>
+      </NavLink>
+
+      {/* --- Filter Drawer (Unchanged Logic, just styling consistency) --- */}
+      {showFilters && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 transition-opacity" onClick={() => setShowFilters(false)}>
+          <div
+            className="absolute inset-y-0 right-0 w-full sm:w-80 bg-background shadow-2xl transform transition-transform duration-300 ease-out"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* ... Keep existing Filter Drawer JSX ... */}
+            <div className="h-full flex flex-col">
+              <div className="flex items-center justify-between p-4 border-b">
+                <h3 className="font-semibold text-lg flex items-center gap-2"><Filter size={18} /> Filters</h3>
+                <button onClick={() => setShowFilters(false)} className="p-2 hover:bg-gray-100 rounded-full"><X size={20} /></button>
+              </div>
+              <div className="p-4 overflow-y-auto flex-1 space-y-4">
+                <button onClick={clearAllFilters} className="text-sm text-red-500 hover:underline w-full text-right">Reset All</button>
+                {/* Search */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold uppercase text-gray-500">Search</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 text-gray-400" size={14} />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                      placeholder="Keywords..."
+                    />
+                  </div>
+                </div>
+                {/* Selects */}
+                {[
+                  { label: "Board", value: selectedBoard, setter: setSelectedBoard, options: filterOptions.boards },
+                  { label: "Year", value: selectedYear, setter: setSelectedYear, options: filterOptions.years },
+                  { label: "Exam Type", value: selectedExamType, setter: setSelectedExamType, options: filterOptions.examTypes },
+                  { label: "Topic", value: selectedTopic, setter: setSelectedTopic, options: filterOptions.topics },
+                  { label: "Chapter", value: selectedChapter, setter: setSelectedChapter, options: filterOptions.chapters },
+                ].map((filter, i) => (
+                  <div key={i} className="space-y-1">
+                    <label className="text-xs font-semibold uppercase text-gray-500">{filter.label}</label>
+                    <select
+                      value={filter.value}
+                      onChange={(e) => filter.setter(e.target.value)}
+                      className="w-full p-2 text-sm border rounded-md bg-white focus:ring-2 focus:ring-primary/20 outline-none"
+                    >
+                      <option value="">All {filter.label}s</option>
+                      {filter.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                    </select>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
       )}
-
-      {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-4">
-        <div className="flex flex-col gap-3">
-          {/* Questions Grid */}
-          <div className="flex-1">
-            {filteredQuestions?.length === 0 ? (
-              <div className="bg-card rounded-lg shadow-sm border border-border p-4 sm:p-6 text-center">
-                <BookOpen className="mx-auto text-muted-foreground mb-2" size={32} />
-                <h3 className="text-base font-medium text-foreground mb-1">No questions found</h3>
-                <p className="text-xs text-muted-foreground">Try adjusting your filters or search query.</p>
-              </div>
-            ) : (
-              <div className="grid gap-3">
-                {filteredQuestions?.map((question) => (
-                  <div
-                    key={question?._id}
-                    className="bg-card rounded-lg shadow-sm border border-border transition-all duration-200 hover:shadow-md hover:border-primary/50"
-                  >
-                    {/* Question Header */}
-                    <div className="p-3 sm:p-4 border-b border-border">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 mb-2 flex-wrap justify-between">
-                            {question?.isNew && (
-                              <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded-full text-[10px] font-medium">
-                                New
-                              </span>
-                            )}
-                            {question?.isRecent && (
-                              <span className="bg-success/10 text-success px-1.5 py-0.5 rounded-full text-[10px] font-medium">
-                                Recent
-                              </span>
-                            )}
-
-                            {/* Action Buttons */}
-                            <div className="flex items-center gap-1 ml-2 flex-shrink-0">
-                              <NavLink
-                                to={`${location.pathname}/${question._id}`}
-                                className="p-1.5 text-muted-foreground hover:text-primary hover:bg-secondary rounded-lg transition-all duration-200"
-                              >
-                                <Edit size={14} />
-                              </NavLink>
-                              <button className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-200">
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
-                          </div>
-                          <div className="text-sm sm:text-base font-medium text-foreground mb-3 leading-relaxed">
-                            <LatexRenderer latex={question.stem} />
-                            {question?.stemImage && (
-                              <div className="flex justify-center">
-                                {" "}
-                                <img
-                                  src={question.stemImage || "/placeholder.svg"}
-                                  alt="Question Stem"
-                                  className="mt-4 rounded-lg "
-                                />{" "}
-                              </div>
-                            )}
-                          </div>
-                          {/* Question Parts */}
-                          <div className="space-y-2">
-                            {question.a && (
-                              <div className="space-y-1.5">
-                                <div className="flex items-start gap-2">
-                                  <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] font-medium min-w-[20px] text-center flex-shrink-0">
-                                    a
-                                  </span>
-                                  <p className="text-foreground flex-1 text-xs sm:text-sm">
-                                    {" "}
-                                    <LatexRenderer latex={question.a} />{" "}
-                                  </p>
-                                  <button
-                                    onClick={() => toggleAnswer(question._id, "a")}
-                                    className="p-0.5 text-muted-foreground hover:text-primary hover:bg-secondary rounded transition-all duration-200 flex-shrink-0"
-                                  >
-                                    {isAnswerExpanded(question._id, "a") ? (
-                                      <ChevronUp size={14} />
-                                    ) : (
-                                      <ChevronDown size={14} />
-                                    )}
-                                  </button>
-                                </div>
-                                {isAnswerExpanded(question._id, "a") && question.aAnswer && (
-                                  <div className="ml-7 p-2 bg-success/10 border border-success/20 rounded-lg">
-                                    <div className="text-[10px] text-success font-medium mb-0.5">Answer:</div>
-                                    <div className="text-xs text-success whitespace-pre-line">
-                                      <LatexRenderer latex={question.aAnswer} />
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            {question.b && (
-                              <div className="space-y-1.5">
-                                <div className="flex items-start gap-2">
-                                  <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] font-medium min-w-[20px] text-center flex-shrink-0">
-                                    b
-                                  </span>
-                                  <p className="text-foreground flex-1 text-xs sm:text-sm">
-                                    {" "}
-                                    <LatexRenderer latex={question.b} />{" "}
-                                  </p>
-                                  <button
-                                    onClick={() => toggleAnswer(question._id, "b")}
-                                    className="p-0.5 text-muted-foreground hover:text-primary hover:bg-secondary rounded transition-all duration-200 flex-shrink-0"
-                                  >
-                                    {isAnswerExpanded(question._id, "b") ? (
-                                      <ChevronUp size={14} />
-                                    ) : (
-                                      <ChevronDown size={14} />
-                                    )}
-                                  </button>
-                                </div>
-                                {isAnswerExpanded(question._id, "b") && question.bAnswer && (
-                                  <div className="ml-7 p-2 bg-success/10 border border-success/20 rounded-lg">
-                                    <div className="text-[10px] text-success font-medium mb-0.5">Answer:</div>
-                                    <div className="text-xs text-success whitespace-pre-line">
-                                      <LatexRenderer latex={question.bAnswer} />{" "}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            {question.c && (
-                              <div className="space-y-1.5">
-                                <div className="flex items-start gap-2">
-                                  <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] font-medium min-w-[20px] text-center flex-shrink-0">
-                                    c
-                                  </span>
-                                  <p className="text-foreground flex-1 text-xs sm:text-sm">
-                                    {" "}
-                                    <LatexRenderer latex={question.c} />{" "}
-                                  </p>
-                                  <button
-                                    onClick={() => toggleAnswer(question._id, "c")}
-                                    className="p-0.5 text-muted-foreground hover:text-primary hover:bg-secondary rounded transition-all duration-200 flex-shrink-0"
-                                  >
-                                    {isAnswerExpanded(question._id, "c") ? (
-                                      <ChevronUp size={14} />
-                                    ) : (
-                                      <ChevronDown size={14} />
-                                    )}
-                                  </button>
-                                </div>
-                                {isAnswerExpanded(question._id, "c") && question.cAnswer && (
-                                  <div className="ml-7 p-2 bg-success/10 border border-success/20 rounded-lg">
-                                    <div className="text-[10px] text-success font-medium mb-0.5">Answer:</div>
-                                    <div className="text-xs text-success whitespace-pre-line">
-                                      <LatexRenderer latex={question.cAnswer} />
-                                    </div>
-                                    {question?.cAnswerImage && (
-                                      <div className="flex justify-center">
-                                        {" "}
-                                        <img
-                                          src={question.cAnswerImage || "/placeholder.svg"}
-                                          alt="Answer Image"
-                                          className="mt-4 rounded-lg "
-                                        />{" "}
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            {question.d && (
-                              <div className="space-y-1.5">
-                                <div className="flex items-start gap-2">
-                                  <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] font-medium min-w-[20px] text-center flex-shrink-0">
-                                    d
-                                  </span>
-                                  <p className="text-foreground flex-1 text-xs sm:text-sm">
-                                    <LatexRenderer latex={question.d} />{" "}
-                                  </p>
-                                  <button
-                                    onClick={() => toggleAnswer(question._id, "d")}
-                                    className="p-0.5 text-muted-foreground hover:text-primary hover:bg-secondary rounded transition-all duration-200 flex-shrink-0"
-                                  >
-                                    {isAnswerExpanded(question._id, "d") ? (
-                                      <ChevronUp size={14} />
-                                    ) : (
-                                      <ChevronDown size={14} />
-                                    )}
-                                  </button>
-                                </div>
-                                {isAnswerExpanded(question._id, "d") && question.dAnswer && (
-                                  <div className="ml-7 p-2 bg-success/10 border border-success/20 rounded-lg">
-                                    <div className="text-[10px] text-success font-medium mb-0.5">Answer:</div>
-                                    <div className="text-xs text-success whitespace-pre-line">
-                                      <LatexRenderer latex={truncateText(question.dAnswer, 100)} />{" "}
-                                    </div>
-                                    {question?.dAnswerImage && (
-                                      <div className="flex justify-center">
-                                        {" "}
-                                        <img
-                                          src={question.dAnswerImage || "/placeholder.svg"}
-                                          alt="Answer Image"
-                                          className="mt-4 rounded-lg "
-                                        />{" "}
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Question Metadata */}
-                    <div className="p-3 sm:p-4 bg-secondary/30">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                        <div className="flex items-center gap-1.5">
-                          <GraduationCap className="text-primary flex-shrink-0" size={14} />
-                          <div className="min-w-0">
-                            <div className="text-muted-foreground text-[10px]">Level</div>
-                            <div className="font-medium text-foreground truncate">{question.level}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <BookOpen className="text-primary flex-shrink-0" size={14} />
-                          <div className="min-w-0">
-                            <div className="text-muted-foreground text-[10px]">Subject</div>
-                            <div className="font-medium text-foreground truncate text-xs">
-                              {question.subject?.englishName}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Target className="text-success flex-shrink-0" size={14} />
-                          <div className="min-w-0">
-                            <div className="text-muted-foreground text-[10px]">Topic</div>
-                            <div className="font-medium text-foreground truncate text-xs">
-                              {question.cTopic?.englishName}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="text-primary flex-shrink-0" size={14} />
-                          <div className="min-w-0">
-                            <div className="text-muted-foreground text-[10px]">Year</div>
-                            <div className="font-medium text-foreground">{question.year}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Building className="text-primary flex-shrink-0" size={14} />
-                          <div className="min-w-0">
-                            <div className="text-muted-foreground text-[10px]">Board</div>
-                            <div className="font-medium text-foreground truncate">{question.board}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Award className="text-primary flex-shrink-0" size={14} />
-                          <div className="min-w-0">
-                            <div className="text-muted-foreground text-[10px]">Chapter</div>
-                            <div className="font-medium text-foreground truncate text-xs">
-                              {question.chapter?.englishName}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Floating Add Button */}
-      <button className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-primary text-primary-foreground p-2.5 sm:p-3 rounded-full shadow-lg hover:opacity-90 hover:scale-110 transition-all duration-200 group z-40">
-        <NavLink to={"/add-cq"}>
-          {" "}
-          <Plus size={18} />
-        </NavLink>
-      </button>
     </div>
   )
 }

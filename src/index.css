@@ -31,9 +31,15 @@
 
     --success: 150 45% 18%;
     --success-foreground: 0 0% 98%;
-    
-    --danger: 0 0% 35%;
+
+    --danger: 0 84% 60%;
     --danger-foreground: 0 0% 98%;
+
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
 
     --border: 0 0% 90%;
     --input: 0 0% 90%;
@@ -53,5 +59,26 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+
+    /* Sonner Theme Overrides */
+    --normal-bg: hsl(var(--background));
+    --normal-border: hsl(var(--border));
+    --normal-text: hsl(var(--foreground));
+
+    --success-bg: hsl(var(--success));
+    --success-border: hsl(var(--success));
+    --success-text: hsl(var(--success-foreground));
+
+    --error-bg: hsl(var(--danger));
+    --error-border: hsl(var(--danger));
+    --error-text: hsl(var(--danger-foreground));
+
+    --warning-bg: hsl(var(--warning));
+    --warning-border: hsl(var(--warning));
+    --warning-text: hsl(var(--warning-foreground));
+
+    --info-bg: hsl(var(--info));
+    --info-border: hsl(var(--info));
+    --info-text: hsl(var(--info-foreground));
   }
 }

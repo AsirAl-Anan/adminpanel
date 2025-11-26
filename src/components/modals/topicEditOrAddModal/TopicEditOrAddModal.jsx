@@ -8,9 +8,10 @@ import ExtractTopicModal from "./modals/ExtractTopicModal.jsx"
 import ExtractArticleModal from "./modals/ExtractArticleModal.jsx"
 import BasicInfoTab from "./tabs/BasicInfoTab.jsx"
 import ArticlesTab from "./tabs/ArticlesTab.jsx"
+import QuestionTypesTab from "./tabs/QuestionTypesTab.jsx"
 import TopicFormulasTab from "./tabs/TopicFormulasTab.jsx"
 import { v4 as uuid } from "uuid"
-import { Expand, Minimize, Menu, X } from "lucide-react"
+import { Expand, Minimize, Menu, X, ChevronDown } from "lucide-react"
 
 const TopicAddOrEditModal = ({
   isEditMode,
@@ -35,13 +36,18 @@ const TopicAddOrEditModal = ({
   const [isExtractArticleModalOpen, setExtractArticleModalOpen] = useState(false)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [isArticlesAccordionOpen, setIsArticlesAccordionOpen] = useState(false)
+  const [isQuestionTypesAccordionOpen, setIsQuestionTypesAccordionOpen] = useState(false)
 
   const articleTabs = (newTopic.articles || []).map((article, index) => ({
     id: `article-${index}`,
     label: `Article ${index + 1}`,
   }))
 
-  const tabs = [{ id: "basic", label: "Basic Info" }, ...articleTabs]
+  const questionTypeTabs = (newTopic.questionTypes || []).map((qt, index) => ({
+    id: `questionType-${index}`,
+    label: `Question Type ${index + 1}`,
+  }))
 
   useEffect(() => {
     const validate = () => {
@@ -207,22 +213,28 @@ const TopicAddOrEditModal = ({
     }
   }
 
-  const removeTopicFormula = (formulaIdx) => {
+  const addQuestionType = () => {
     setNewTopic((prev) => {
-      const newState = structuredClone(prev)
-      const activeArticleIndex = parseInt(activeTab.split("-")[1], 10)
-      if (
-        newState.articles &&
-        newState.articles[activeArticleIndex] &&
-        newState.articles[activeArticleIndex].formulas
-      ) {
-        newState.articles[activeArticleIndex].formulas = newState.articles[activeArticleIndex].formulas.filter(
-          (_, i) => i !== formulaIdx,
-        )
+      const updatedQuestionTypes = [
+        ...(prev.questionTypes || []),
+        { name: { en: "", bn: "" }, description: { en: "", bn: "" } },
+      ]
+      setActiveTab(`questionType-${updatedQuestionTypes.length - 1}`)
+      return {
+        ...prev,
+        questionTypes: updatedQuestionTypes,
       }
-      return newState
     })
   }
+
+  const removeQuestionType = (qtIndex) => {
+    setNewTopic((prev) => ({
+      ...prev,
+      questionTypes: (prev.questionTypes || []).filter((_, i) => i !== qtIndex),
+    }))
+  }
+
+
 
   // Sections
   const addSection = (artIdx) =>
@@ -514,7 +526,9 @@ const TopicAddOrEditModal = ({
                 {isDrawerOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
               <span className="ml-3 text-sm font-medium text-muted-foreground">
-                {tabs.find(t => t.id === activeTab)?.label || "Navigation"}
+                {activeTab === "basic"
+                  ? "Basic Info"
+                  : `Article ${parseInt(activeTab.split("-")[1], 10) + 1}`}
               </span>
             </div>
           </div>
@@ -523,21 +537,115 @@ const TopicAddOrEditModal = ({
             {/* Sidebar (Visible on medium screens and up) */}
             <div className="hidden md:block w-48 bg-muted/30 border-r p-4">
               <nav className="flex flex-col space-y-2">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`px-4 py-2 text-left text-sm font-medium rounded-md transition-colors ${activeTab === tab.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
                 <button
-                  onClick={addArticle}
-                  className="px-4 py-2 text-left text-sm font-medium rounded-md transition-colors text-muted-foreground hover:bg-muted"
+                  key="basic"
+                  onClick={() => setActiveTab("basic")}
+                  className={`px-4 py-2 text-left text-sm font-medium rounded-md transition-colors ${activeTab === "basic" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
                 >
-                  + Add Article
+                  Basic Info
                 </button>
+
+                {(newTopic.questionTypes || []) && (
+                  <div>
+                    <button
+                      onClick={() => setIsQuestionTypesAccordionOpen(!isQuestionTypesAccordionOpen)}
+                      className="w-full flex justify-between items-center px-4 py-2 text-left text-sm font-medium rounded-md transition-colors text-muted-foreground hover:bg-muted"
+                    >
+                      <span>Question Types ({(newTopic.questionTypes || []).length})</span>
+                      <ChevronDown
+                        className={`w-4 h-4 transition-transform duration-200 ${isQuestionTypesAccordionOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ease-in-out ${isQuestionTypesAccordionOpen ? "max-h-96" : "max-h-0"}`}
+                    >
+                      <button
+                        onClick={addQuestionType}
+                        className="w-full px-4 py-2 text-left text-xs font-medium rounded-md transition-colors text-primary hover:bg-primary/10 flex items-center"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Question Type
+                      </button>
+                          <div className="pl-4 mt-2 space-y-2">
+                            {questionTypeTabs.map((tab, index) => (
+                              <div key={tab.id} className="flex items-center justify-between group">
+                                <button
+                                  onClick={() => setActiveTab(tab.id)}
+                                  className={`flex-1 px-4 py-2 text-left text-sm font-medium rounded-md transition-colors ${activeTab === tab.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
+                                >
+                                  {tab.label}
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    removeQuestionType(index)
+                                  }}
+                                  className="ml-2 p-1 text-red-500 hover:bg-red-100 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                                  aria-label={`Delete ${tab.label}`}
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                    </div>
+                  </div>
+                )}
+
+                {(newTopic.articles || []) && (
+                  <div>
+                    <button
+                      onClick={() => setIsArticlesAccordionOpen(!isArticlesAccordionOpen)}
+                      className="w-full flex justify-between items-center px-4 py-2 text-left text-sm font-medium rounded-md transition-colors text-muted-foreground hover:bg-muted"
+                    >
+                      <span>Articles ({(newTopic.articles || []).length})</span>
+                      <ChevronDown
+                        className={`w-4 h-4 transition-transform duration-200 ${isArticlesAccordionOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ease-in-out ${isArticlesAccordionOpen ? "max-h-96" : "max-h-0"}`}
+                    >
+                      <button
+                        onClick={addArticle}
+                        className="w-full px-4 py-2 text-left text-xs font-medium rounded-md transition-colors text-primary hover:bg-primary/10 flex items-center"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Article
+                      </button>
+                      <div className="pl-4 mt-2 space-y-2">
+                        {articleTabs.map((tab, index) => (
+                          <div key={tab.id} className="flex items-center justify-between group">
+                            <button
+                              onClick={() => setActiveTab(tab.id)}
+                              className={`flex-1 px-4 py-2 text-left text-sm font-medium rounded-md transition-colors ${activeTab === tab.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
+                            >
+                              {tab.label}
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                removeArticle(index)
+                              }}
+                              className="ml-2 p-1 text-red-500 hover:bg-red-100 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label={`Delete ${tab.label}`}
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </nav>
             </div>
 
@@ -566,32 +674,136 @@ const TopicAddOrEditModal = ({
                   
                   {/* Drawer Content */}
                   <nav className="flex flex-col p-3 space-y-1 overflow-y-auto h-[calc(100%-3.5rem)]">
-                    {tabs.map((tab) => (
-                      <button
-                        key={tab.id}
-                        onClick={() => {
-                          setActiveTab(tab.id)
-                          setIsDrawerOpen(false)
-                        }}
-                        className={`px-4 py-2.5 text-left text-sm font-medium rounded-lg transition-all ${activeTab === tab.id ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground hover:bg-muted"}`}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
-                    <div className="pt-2 mt-2 border-t">
-                      <button
-                        onClick={() => {
-                          addArticle()
-                          setIsDrawerOpen(false)
-                        }}
-                        className="w-full px-4 py-2.5 text-left text-sm font-medium rounded-lg transition-colors text-primary hover:bg-primary/10 flex items-center"
-                      >
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                        Add Article
-                      </button>
-                    </div>
+                    <button
+                      key="basic"
+                      onClick={() => {
+                        setActiveTab("basic")
+                        setIsDrawerOpen(false)
+                      }}
+                      className={`px-4 py-2.5 text-left text-sm font-medium rounded-lg transition-all ${activeTab === "basic" ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground hover:bg-muted"}`}
+                    >
+                      Basic Info
+                    </button>
+
+                    {(newTopic.questionTypes || []).length > 0 && (
+                      <div>
+                        <button
+                          onClick={() => setIsQuestionTypesAccordionOpen(!isQuestionTypesAccordionOpen)}
+                          className="w-full flex justify-between items-center px-4 py-2.5 text-left text-sm font-medium rounded-lg transition-all text-foreground hover:bg-muted"
+                        >
+                          <span>Question Types ({(newTopic.questionTypes || []).length})</span>
+                          <ChevronDown
+                            className={`w-4 h-4 transition-transform duration-200 ${isQuestionTypesAccordionOpen ? "rotate-180" : ""}`}
+                          />
+                        </button>
+                        <div
+                          className={`overflow-hidden transition-all duration-300 ease-in-out ${isQuestionTypesAccordionOpen ? "max-h-96" : "max-h-0"}`}
+                        >
+                          <div className="pt-2 mt-2 border-t">
+                            <button
+                              onClick={() => {
+                                addQuestionType()
+                                setIsDrawerOpen(false)
+                              }}
+                              className="w-full px-4 py-2.5 text-left text-sm font-medium rounded-lg transition-colors text-primary hover:bg-primary/10 flex items-center"
+                            >
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                              </svg>
+                              Add Question Type
+                            </button>
+                          </div>
+                          <div className="pl-4 mt-1 space-y-1">
+                            {questionTypeTabs.map((tab, index) => (
+                              <div key={tab.id} className="flex items-center justify-between group">
+                                <button
+                                  onClick={() => {
+                                    setActiveTab(tab.id)
+                                    setIsDrawerOpen(false)
+                                  }}
+                                  className={`flex-1 px-4 py-2.5 text-left text-sm font-medium rounded-lg transition-all ${activeTab === tab.id ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground hover:bg-muted"}`}
+                                >
+                                  {tab.label}
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    removeQuestionType(index)
+                                    setIsDrawerOpen(false)
+                                  }}
+                                  className="ml-2 p-1 text-red-500 hover:bg-red-100 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                                  aria-label={`Delete ${tab.label}`}
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {(newTopic.articles || []).length > 0 && (
+                      <div>
+                        <button
+                          onClick={() => setIsArticlesAccordionOpen(!isArticlesAccordionOpen)}
+                          className="w-full flex justify-between items-center px-4 py-2.5 text-left text-sm font-medium rounded-lg transition-all text-foreground hover:bg-muted"
+                        >
+                          <span>Articles ({(newTopic.articles || []).length})</span>
+                          <ChevronDown
+                            className={`w-4 h-4 transition-transform duration-200 ${isArticlesAccordionOpen ? "rotate-180" : ""}`}
+                          />
+                        </button>
+                        <div
+                          className={`overflow-hidden transition-all duration-300 ease-in-out ${isArticlesAccordionOpen ? "max-h-96" : "max-h-0"}`}
+                        >
+                          <div className="pt-2 mt-2 border-t">
+                            <button
+                              onClick={() => {
+                                addArticle()
+                                setIsDrawerOpen(false)
+                              }}
+                              className="w-full px-4 py-2.5 text-left text-sm font-medium rounded-lg transition-colors text-primary hover:bg-primary/10 flex items-center"
+                            >
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                              </svg>
+                              Add Article
+                            </button>
+                          </div>
+                          <div className="pl-4 mt-1 space-y-1">
+                            {articleTabs.map((tab, index) => (
+                              <div key={tab.id} className="flex items-center justify-between group">
+                                <button
+                                  onClick={() => {
+                                    setActiveTab(tab.id)
+                                    setIsDrawerOpen(false)
+                                  }}
+                                  className={`flex-1 px-4 py-2.5 text-left text-sm font-medium rounded-lg transition-all ${activeTab === tab.id ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground hover:bg-muted"}`}
+                                >
+                                  {tab.label}
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    removeArticle(index)
+                                    setIsDrawerOpen(false)
+                                  }}
+                                  className="ml-2 p-1 text-red-500 hover:bg-red-100 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                                  aria-label={`Delete ${tab.label}`}
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </nav>
                 </div>
               </>
@@ -619,6 +831,14 @@ const TopicAddOrEditModal = ({
                   addSectionFormula={addSectionFormula}
                   removeSectionFormula={removeSectionFormula}
                   openExtractArticleModal={() => setExtractArticleModalOpen(true)}
+                />
+              )}
+              {activeTab.startsWith("questionType-") && (
+                <QuestionTypesTab
+                  questionType={newTopic.questionTypes[parseInt(activeTab.split("-")[1], 10)]}
+                  questionTypeIndex={parseInt(activeTab.split("-")[1], 10)}
+                  handleUpdate={handleUpdate}
+                  removeQuestionType={removeQuestionType}
                 />
               )}
             </div>
