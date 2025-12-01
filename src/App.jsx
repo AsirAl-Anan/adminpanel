@@ -11,60 +11,70 @@ import ViewQuestion from "./pages/subpages/ViewQuestion"
 import SubjectManagementPage from "./components/Subject/SubjectManagementPage"
 import SubjectQuestions from "./pages/subpages/SubjectQuestions"
 import EditCqPage from "./pages/subpages/EditCq"
+import EditCqPage from "./pages/subpages/EditCq"
 import ErrorBoundary from "./components/ErrorBoundary"
+import ProtectedRoute from "./components/ProtectedRoute"
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Home />,
+    element: <ProtectedRoute />,
     children: [
       {
         path: "/",
-        element: <Dashboard />
-      },
+        element: <Home />,
+        children: [
+          {
+            path: "/",
+            element: <Dashboard />
+          },
 
-      {
-        path: "/add-cq",
-        element: <AddCreativeQuestionPage />
-      },
-      {
-        path: "/subjects",
-        element: <SubjectsPage />
-      },
-      {
-        path: "/questions/:level/:group/:subjectId",     //curent page with all questions 
-        element: <Qb />
-      },
-      {
-        path: "/questions/:level/:group/:subjectId/:questionId", //required page to view and edit a single question
-        element: <ViewQuestion />,
-        errorElement: <ErrorBoundary />
-      },
-      {
-        path: '/subject/:id',
-        element: <SubjectManagementPage />
-      },
-      {
-        path: "/subject/:subjectId/questions",
-        element: <SubjectQuestions />
-      },
-      {
-        path: "/questions/edit/:id",
-        element: <EditCqPage />
-      },
-      {
-        path: '/settings',
-        element: <UnderConstruction />
+          {
+            path: "/add-cq",
+            element: <AddCreativeQuestionPage />
+          },
+          {
+            path: "/subjects",
+            element: <SubjectsPage />
+          },
+          {
+            path: "/questions/:level/:group/:subjectId",     //curent page with all questions 
+            element: <Qb />
+          },
+          {
+            path: "/questions/:level/:group/:subjectId/:questionId", //required page to view and edit a single question
+            element: <ViewQuestion />,
+            errorElement: <ErrorBoundary />
+          },
+          {
+            path: '/subject/:id',
+            element: <SubjectManagementPage />
+          },
+          {
+            path: "/subject/:subjectId/questions",
+            element: <SubjectQuestions />
+          },
+          {
+            path: "/questions/edit/:id",
+            element: <EditCqPage />
+          },
+          {
+            path: '/settings',
+            element: <UnderConstruction />
+          }
+        ]
       }
-
-
-
-      // Add more child routes here as needed
     ]
   },
   {
     path: '/manage-users',
-    element: <UnderConstruction />
+    element: <ProtectedRoute />,
+    children: [
+      {
+        path: "",
+        element: <UnderConstruction />
+      }
+    ]
   },
   {
     path: "/login",

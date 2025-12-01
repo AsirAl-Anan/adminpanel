@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../config/axios.js"
 
 export const UserContext = createContext();
 
@@ -29,10 +29,7 @@ export const UserProvider = ({ children }) => {
        * The request is sent with the withCredentials option set to true
        * to include the authentication cookies in the request.
        */
-      const res = await axios.get(import.meta.env.VITE_API_URL + "/auth/get-user", {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" }
-      });
+      const res = await axios.get("/auth/get-user");
       
       /**
        * Checks if the response is successful and if the user data is in the response.
