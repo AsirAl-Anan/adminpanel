@@ -10,12 +10,17 @@ export const Step2Context = ({
     chapters,
     isSubjectsLoading,
     isChaptersLoading,
-    errors
+    errors,
+    isSubjectDisabled
 }) => {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField label="Subject" isRequired error={errors.subject}>
-                <StyledSelect value={formData.meta.subject._id} onChange={(e) => handleSubjectChange(e.target.value)} disabled={isSubjectsLoading}>
+                <StyledSelect
+                    value={formData.meta.subject._id}
+                    onChange={(e) => handleSubjectChange(e.target.value)}
+                    disabled={isSubjectsLoading || isSubjectDisabled}
+                >
                     <option value="">{isSubjectsLoading ? 'Loading Subjects...' : 'Select Subject'}</option>
                     {subjects.map(s => <option key={s._id} value={s._id}>{s.name.en}</option>)}
                 </StyledSelect>

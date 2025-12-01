@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import axios from "../../config/axios.js"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { showSuccessToast, showErrorToast, showWarningToast } from "../../../lib/toast"
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -58,6 +58,7 @@ const createInitialState = () => ({
 
 const AddCqPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState(createInitialState());
   const [errors, setErrors] = useState({});
@@ -68,11 +69,38 @@ const AddCqPage = () => {
   const [isChaptersLoading, setIsChaptersLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
+
   // Track completed steps for navigation
   const [completedSteps, setCompletedSteps] = useState([]);
 
   // Status modal state
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+
+  // Pending subject ID from URL params
+  const [pendingSubjectId, setPendingSubjectId] = useState(null);
+
+  // Initialize from URL params
+  useEffect(() => {
+    const subjectId = searchParams.get("subject");
+    const level = searchParams.get("level");
+    const group = searchParams.get("group");
+
+    if (level && group) {
+      setFormData(prev => ({
+        ...prev,
+        meta: {
+          ...prev.meta,
+          level: level,
+          group: group
+        }
+      }));
+
+      if (subjectId) {
+        setPendingSubjectId(subjectId);
+      }
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchSubjects = async () => {
@@ -85,8 +113,10 @@ const AddCqPage = () => {
           const res = await axios.get(`/subject/subjects/filter`, {
             params: { level: formData.meta.level, group: formData.meta.group },
           });
+          console.log(res.data);
           setSubjects(res.data || []);
         } catch (err) {
+          console.log(err);
           showErrorToast("Failed to fetch subjects.");
         } finally {
           setIsSubjectsLoading(false);
@@ -95,6 +125,23 @@ const AddCqPage = () => {
     };
     fetchSubjects();
   }, [formData.meta.level, formData.meta.group]);
+
+  // Apply pending subject when subjects are loaded
+  useEffect(() => {
+    if (pendingSubjectId && subjects.length > 0) {
+      const subject = subjects.find(s => s._id === pendingSubjectId);
+      if (subject) {
+        setFormData(prev => ({
+          ...prev,
+          meta: {
+            ...prev.meta,
+            subject: { _id: subject._id, name: subject.name?.en || '' }
+          }
+        }));
+        setPendingSubjectId(null); // Clear pending after applying
+      }
+    }
+  }, [subjects, pendingSubjectId]);
 
   useEffect(() => {
     const fetchChapters = async () => {
@@ -226,8 +273,7 @@ const AddCqPage = () => {
           }
 
           if (!formData[p].chapter) newErrors[`${p}_chapter`] = `Chapter is required.`;
-          if (formData[p].topics.length === 0) newErrors[`${p}_topics`] = `Topic is required.`;
-          if (formData[p].types.length === 0) newErrors[`${p}_types`] = `Type is required.`;
+
         });
         break;
       case 3:
@@ -255,6 +301,13 @@ const AddCqPage = () => {
   const handleNext = () => {
     if (validateStep(step)) {
       setCompletedSteps(prev => [...new Set([...prev, step])]);
+
+      // If moving to the last step (Metadata), disable submit button temporarily
+      if (step === steps.length - 2) {
+        setIsSubmitDisabled(true);
+        setTimeout(() => setIsSubmitDisabled(false), 1000);
+      }
+
       setStep(s => s + 1);
       window.scrollTo(0, 0);
     } else {
@@ -284,6 +337,11 @@ const AddCqPage = () => {
     }
 
     if (canMove) {
+      // If moving to the last step (Metadata), disable submit button temporarily
+      if (targetStep === steps.length - 1) {
+        setIsSubmitDisabled(true);
+        setTimeout(() => setIsSubmitDisabled(false), 1000);
+      }
       setStep(targetStep);
     } else {
       showWarningToast("Please complete previous steps first.");
@@ -385,7 +443,12 @@ const AddCqPage = () => {
 
             <form onSubmit={handleSubmitClick} className="space-y-6 animate-in fade-in duration-500">
               <FormCard title={steps[step]}>
-                {step === 0 && <Step1BasicInfo formData={formData} handleMetaChange={handleMetaChange} errors={errors} />}
+                {step === 0 && <Step1BasicInfo
+                  formData={formData}
+                  handleMetaChange={handleMetaChange}
+                  errors={errors}
+                  isDisabled={!!searchParams.get("level") && !!searchParams.get("group")}
+                />}
                 {step === 1 && <Step2Context
                   formData={formData}
                   handleSubjectChange={handleSubjectChange}
@@ -396,6 +459,7 @@ const AddCqPage = () => {
                   isSubjectsLoading={isSubjectsLoading}
                   isChaptersLoading={isChaptersLoading}
                   errors={errors}
+                  isSubjectDisabled={!!searchParams.get("subject")}
                 />}
                 {step === 2 && <Step3QuestionDetails
                   formData={formData}
@@ -419,7 +483,7 @@ const AddCqPage = () => {
                       </button>
                     )}
                     {step === steps.length - 1 ? (
-                      <button type="submit" disabled={isSubmitting} className="flex-1 sm:flex-none inline-flex justify-center items-center px-6 sm:px-8 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-lg shadow-lg shadow-blue-200 hover:bg-blue-700 disabled:bg-blue-400 transition-all transform hover:-translate-y-0.5">
+                      <button type="submit" disabled={isSubmitting || isSubmitDisabled} className="flex-1 sm:flex-none inline-flex justify-center items-center px-6 sm:px-8 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-lg shadow-lg shadow-blue-200 hover:bg-blue-700 disabled:bg-blue-400 transition-all transform hover:-translate-y-0.5">
                         {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</> : "Submit Question"}
                       </button>
                     ) : (

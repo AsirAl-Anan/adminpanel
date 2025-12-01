@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import axios from "../../config/axios"
 import { showSuccessToast, showErrorToast } from "../../../lib/toast"
+import TranslationButton from "../ui/TranslationButton"
 
 const ChapterModal = ({ subject, chapter, onSave, onClose }) => {
   const [formData, setFormData] = useState({
@@ -87,7 +88,14 @@ const ChapterModal = ({ subject, chapter, onSave, onClose }) => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Chapter Name (English)</label>
+            <div className="flex justify-between items-center">
+              <label className="block text-sm font-medium text-gray-700">Chapter Name (English)</label>
+              <TranslationButton
+                text={formData.name.en}
+                targetLang="bn"
+                onTranslate={(text) => handleChange("name", "bn", text)}
+              />
+            </div>
             <input
               type="text"
               value={formData.name.en}
@@ -97,7 +105,14 @@ const ChapterModal = ({ subject, chapter, onSave, onClose }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Chapter Name (Bangla)</label>
+            <div className="flex justify-between items-center">
+              <label className="block text-sm font-medium text-gray-700">Chapter Name (Bangla)</label>
+              <TranslationButton
+                text={formData.name.bn}
+                targetLang="en"
+                onTranslate={(text) => handleChange("name", "en", text)}
+              />
+            </div>
             <input
               type="text"
               value={formData.name.bn}

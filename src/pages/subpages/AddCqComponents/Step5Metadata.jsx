@@ -1,13 +1,76 @@
-import React from "react"
-import { AlignLeft, Languages } from "lucide-react"
+import React, { useState } from "react"
+import { AlignLeft, Languages, Sparkles, Loader2 } from "lucide-react"
 import { FormField, TagInput } from "./UIComponents"
-
+import axios from "../../../config/axios.js"
 export const Step5Metadata = ({ formData, handleAliasChange, handleTagsChange, errors }) => {
     const aliases = formData.meta.aliases || { en: [], bn: [], banglish: [] };
     const tags = formData.meta.tags || { en: [], bn: [] };
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    const handleGenerateMetadata = async () => {
+        setIsGenerating(true);
+        try {
+            const context = {
+                subject: formData.meta?.subject?.name,
+                board: formData.source?.source?.value,
+                year: formData.source?.year,
+                level: formData.meta?.level,
+                group: formData.meta?.group,
+                examType: formData.source?.examType,
+                topic: formData.meta?.mainChapter?.name
+            };
+
+            const response = await axios.post('/ai/generate-metadata', context);
+         
+            const data = await response.data
+
+            if (data.success && data.data) {
+                const { aliases: newAliases, tags: newTags } = data.data;
+
+                // Helper to merge unique values
+                const mergeUnique = (existing, incoming) => {
+                    return [...new Set([...(existing || []), ...(incoming || [])])];
+                };
+
+                // Append new aliases
+                if (newAliases.en) handleAliasChange('en', mergeUnique(aliases.en, newAliases.en));
+                if (newAliases.bn) handleAliasChange('bn', mergeUnique(aliases.bn, newAliases.bn));
+                if (newAliases.banglish) handleAliasChange('banglish', mergeUnique(aliases.banglish, newAliases.banglish));
+
+                // Append new tags
+                if (newTags.en) handleTagsChange('en', mergeUnique(tags.en, newTags.en));
+                if (newTags.bn) handleTagsChange('bn', mergeUnique(tags.bn, newTags.bn));
+            }
+        } catch (error) {
+            console.error("Error generating metadata:", error);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     return (
         <div className="space-y-8">
+            <div className="flex justify-end">
+                <button
+                    type="button"
+                    onClick={handleGenerateMetadata}
+                    disabled={isGenerating}
+                    className="flex items-center px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-lg hover:from-violet-700 hover:to-indigo-700 transition-all shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                    {isGenerating ? (
+                        <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Generating...
+                        </>
+                    ) : (
+                        <>
+                            <Sparkles className="w-4 h-4 mr-2" />
+                            Generate with AI
+                        </>
+                    )}
+                </button>
+            </div>
+
             <div className="p-6 bg-slate-50 border border-slate-200 rounded-xl">
                 <h4 className="font-bold text-lg text-slate-800 mb-4 flex items-center">
                     <AlignLeft className="w-5 h-5 mr-2 text-slate-500" /> Search Aliases

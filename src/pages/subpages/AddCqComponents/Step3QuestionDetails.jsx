@@ -1,10 +1,12 @@
 import React, { useState } from "react"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, Sparkles } from "lucide-react"
 import { ContentBlockManager } from "./ContentBlockManager"
 import { QuestionPartForm } from "./QuestionPartForm"
+import { ImageExtractionModal } from "../../../components/ImageExtractionModal"
 
 export const Step3QuestionDetails = ({ formData, handleStemBlocksChange, handlePartChange, chapters, errors }) => {
     const [activeTab, setActiveTab] = useState('a');
+    const [isExtractionModalOpen, setIsExtractionModalOpen] = useState(false);
 
     const tabs = [
         { id: 'a', label: 'Part A', marks: 1 },
@@ -13,8 +15,36 @@ export const Step3QuestionDetails = ({ formData, handleStemBlocksChange, handleP
         { id: 'd', label: 'Part D', marks: 4 },
     ];
 
+    const handleExtractionSuccess = (extractedData) => {
+        // extractedData is expected to be an array with one object based on the service implementation
+        // or a direct object if we adjust the service. 
+        // The service returns [result] currently.
+        const data = Array.isArray(extractedData) ? extractedData[0] : extractedData;
+
+        if (data.stem) {
+            handleStemBlocksChange(data.stem);
+        }
+
+        ['a', 'b', 'c', 'd'].forEach(partKey => {
+            if (data[partKey] && data[partKey].question) {
+                handlePartChange(partKey, "question", data[partKey].question);
+            }
+        });
+    };
+
     return (
         <div className="space-y-4">
+            <div className="flex justify-end">
+                <button
+                    type="button"
+                    onClick={() => setIsExtractionModalOpen(true)}
+                    className="inline-flex items-center px-3 py-1.5 text-xs font-bold text-purple-700 bg-purple-100 rounded-full hover:bg-purple-200 transition-colors border border-purple-200 shadow-sm"
+                >
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                    Extract Question from Image
+                </button>
+            </div>
+
             {/* Stem using ContentBlockManager */}
             <div>
                 <div className="flex items-center mb-2">
@@ -78,6 +108,13 @@ export const Step3QuestionDetails = ({ formData, handleStemBlocksChange, handleP
                     />
                 </div>
             </div>
+
+            <ImageExtractionModal
+                isOpen={isExtractionModalOpen}
+                onClose={() => setIsExtractionModalOpen(false)}
+                onSuccess={handleExtractionSuccess}
+                type="question"
+            />
         </div>
     )
 }

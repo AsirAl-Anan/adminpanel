@@ -1,14 +1,39 @@
+// AI Question Extraction Modal Integration
 import React, { useState } from "react"
+import { Sparkles } from "lucide-react"
 import { ContentBlockManager } from "./ContentBlockManager"
+import { ImageExtractionModal } from "../../../components/ImageExtractionModal"
 
 export const Step4AnswerDetails = ({ formData, handlePartChange, errors }) => {
     const [activeTab, setActiveTab] = useState('a');
+    const [isExtractionModalOpen, setIsExtractionModalOpen] = useState(false);
     const tabs = ['a', 'b', 'c', 'd'];
+
+    const handleExtractionSuccess = (extractedData) => {
+        // extractedData is expected to be an object matching the schema: { a: { answer: [...] }, b: ... }
+        // The service returns the result directly.
+
+        ['a', 'b', 'c', 'd'].forEach(partKey => {
+            if (extractedData[partKey] && extractedData[partKey].answer) {
+                handlePartChange(partKey, "answer", extractedData[partKey].answer);
+            }
+        });
+    };
 
     return (
         <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg mb-4 text-blue-800 text-sm">
-                <span className="font-bold">Note:</span> Provide accurate answers for the evaluators. You can use multiple blocks for structured answers.
+            <div className="flex justify-between items-center bg-blue-50 border border-blue-100 p-4 rounded-lg mb-4">
+                <div className="text-blue-800 text-sm">
+                    <span className="font-bold">Note:</span> Provide accurate answers for the evaluators. You can use multiple blocks for structured answers.
+                </div>
+                <button
+                    type="button"
+                    onClick={() => setIsExtractionModalOpen(true)}
+                    className="inline-flex items-center px-3 py-1.5 text-xs font-bold text-purple-700 bg-white rounded-full hover:bg-purple-50 transition-colors border border-purple-200 shadow-sm whitespace-nowrap ml-4"
+                >
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                    Extract Answer from Image
+                </button>
             </div>
 
             {/* Tabs */}
@@ -50,6 +75,13 @@ export const Step4AnswerDetails = ({ formData, handlePartChange, errors }) => {
                     {errors[`${activeTab}_answer`] && <p className="mt-2 text-sm text-red-600 font-medium">{errors[`${activeTab}_answer`]}</p>}
                 </div>
             </div>
+
+            <ImageExtractionModal
+                isOpen={isExtractionModalOpen}
+                onClose={() => setIsExtractionModalOpen(false)}
+                onSuccess={handleExtractionSuccess}
+                type="answer"
+            />
         </div>
     )
 }

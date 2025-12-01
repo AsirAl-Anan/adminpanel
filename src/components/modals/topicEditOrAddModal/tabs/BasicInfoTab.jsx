@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import BilingualInput from '../ui/BilingualInput';
+import TranslationButton from '../../../ui/TranslationButton';
 import DynamicListItem from '../ui/DynamicListItem';
 import {
   Select,
@@ -7,7 +8,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../../../components/ui/select"; // Import Select components
+} from "../../../../../components/ui/select";
 
 const BasicInfoTab = ({
   newTopic,
@@ -21,9 +22,16 @@ const BasicInfoTab = ({
       <BilingualInput label="Topic Description" fieldName="description" englishValue={newTopic.description?.en} banglaValue={newTopic.description?.bn} onUpdate={handleUpdate} isTextarea />
 
       <div>
-        <label className="block text-sm font-medium text-foreground mb-1">
-          Topic Number <span className="text-destructive-foreground">*</span>
-        </label>
+        <div className="flex justify-between items-center mb-1">
+          <label className="block text-sm font-medium text-foreground">
+            Topic Number <span className="text-destructive-foreground">*</span>
+          </label>
+          <TranslationButton
+            text={newTopic.topicNumber}
+            targetLang="bn"
+            onTranslate={(text) => handleUpdate('topicNumber', text)}
+          />
+        </div>
         <input
           type="text"
           value={newTopic.topicNumber || ''}
@@ -49,8 +57,6 @@ const BasicInfoTab = ({
         </select>
       </div>
 
-     
-
       <section>
         <h4 className="font-medium text-foreground mb-2">Aliases</h4>
         {['english', 'bangla', 'banglish'].map(aliasType => (
@@ -58,13 +64,20 @@ const BasicInfoTab = ({
             <label className="block text-sm font-medium text-muted-foreground capitalize mb-1">{aliasType} Aliases</label>
             {newTopic.aliases?.[aliasType]?.map((alias, idx) => (
               <DynamicListItem key={idx} onRemove={() => removeAliasField(aliasType, idx)}>
-                <input
-                  type="text"
-                  value={alias || ''}
-                  onChange={(e) => handleUpdate(`aliases.${aliasType}.${idx}`, e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-ring transition-colors bg-input text-sm"
-                  placeholder={`Enter ${aliasType} alias`}
-                />
+                <div className="flex items-center gap-2 w-full">
+                  <input
+                    type="text"
+                    value={alias || ''}
+                    onChange={(e) => handleUpdate(`aliases.${aliasType}.${idx}`, e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-ring transition-colors bg-input text-sm"
+                    placeholder={`Enter ${aliasType} alias`}
+                  />
+                  <TranslationButton
+                    text={alias}
+                    targetLang={aliasType === 'english' ? 'bn' : 'en'}
+                    onTranslate={(text) => handleUpdate(`aliases.${aliasType}.${idx}`, text)}
+                  />
+                </div>
               </DynamicListItem>
             ))}
             <button type="button" onClick={() => addAliasField(aliasType)} className="flex items-center text-primary hover:text-primary/80 text-sm font-medium mt-2">

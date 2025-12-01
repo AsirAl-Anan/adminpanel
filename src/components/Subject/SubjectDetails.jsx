@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../../config/axios';
 import { Loader2 } from 'lucide-react'; // For loading spinner
+import TranslationButton from '../ui/TranslationButton';
 
 // A reusable component for displaying a single detail item
 const DetailItem = ({ label, value }) => (
@@ -12,10 +13,13 @@ const DetailItem = ({ label, value }) => (
 );
 
 // A reusable input component for the form
-const FormInput = ({ label, ...props }) => (
+const FormInput = ({ label, extraLabel, ...props }) => (
   <div>
-    <label className="block text-sm font-medium text-muted-foreground mb-1.5">{label}</label>
-    <input 
+    <div className="flex justify-between items-center mb-1.5">
+      <label className="block text-sm font-medium text-muted-foreground">{label}</label>
+      {extraLabel}
+    </div>
+    <input
       {...props}
       className="w-full px-3 py-2 border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring transition-all text-sm"
     />
@@ -88,41 +92,55 @@ const SubjectDetails = ({ subject, onSave }) => {
     <div className="bg-card border border-border p-6 rounded-lg max-w-4xl mx-auto">
       <div className="flex justify-between items-start mb-6">
         <div>
-            <h2 className="text-2xl font-bold text-foreground">Subject Information</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-                {isEditing ? 'Update the details for this subject.' : 'View the current details for this subject.'}
-            </p>
+          <h2 className="text-2xl font-bold text-foreground">Subject Information</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {isEditing ? 'Update the details for this subject.' : 'View the current details for this subject.'}
+          </p>
         </div>
         {!isEditing && (
-            <button
-                onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-secondary text-foreground text-xs font-medium rounded-md hover:bg-muted transition-colors"
-            >
-                Edit Details
-            </button>
+          <button
+            onClick={() => setIsEditing(true)}
+            className="px-4 py-2 bg-secondary text-foreground text-xs font-medium rounded-md hover:bg-muted transition-colors"
+          >
+            Edit Details
+          </button>
         )}
       </div>
 
       {isEditing ? (
         <form onSubmit={handleSave}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-            <FormInput 
+            <FormInput
               label="English Name"
+              extraLabel={
+                <TranslationButton
+                  text={formData.name.en}
+                  targetLang="bn"
+                  onTranslate={(text) => handleChange({ target: { name: 'name.bn', value: text } })}
+                />
+              }
               name="name.en"
               value={formData.name.en}
               onChange={handleChange}
               placeholder="e.g., Physics"
               required
             />
-            <FormInput 
+            <FormInput
               label="Bangla Name"
+              extraLabel={
+                <TranslationButton
+                  text={formData.name.bn}
+                  targetLang="en"
+                  onTranslate={(text) => handleChange({ target: { name: 'name.en', value: text } })}
+                />
+              }
               name="name.bn"
               value={formData.name.bn}
               onChange={handleChange}
               placeholder="e.g., পদার্থবিজ্ঞান"
               required
             />
-            <FormInput 
+            <FormInput
               label="Subject Code"
               name="subjectCode"
               type="number"
@@ -131,7 +149,7 @@ const SubjectDetails = ({ subject, onSave }) => {
               placeholder="e.g., 174"
               required
             />
-             <FormSelect
+            <FormSelect
               label="Level"
               name="level"
               value={formData.level}
@@ -142,7 +160,7 @@ const SubjectDetails = ({ subject, onSave }) => {
               <option value="SSC">SSC</option>
               <option value="HSC">HSC</option>
             </FormSelect>
-             <FormSelect
+            <FormSelect
               label="Group"
               name="group"
               value={formData.group}
@@ -175,7 +193,7 @@ const SubjectDetails = ({ subject, onSave }) => {
         </form>
       ) : (
         <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          
+
           <DetailItem label="" value={subject.name?.en} />
           <DetailItem label="" value={subject.name?.bn} />
           <DetailItem label="Subject Code" value={subject.subjectCode} />

@@ -264,7 +264,7 @@ const SubjectsPage = () => {
                   </NavLink>
                   
                   <NavLink
-                    to={`/questions/${subject.level}/${subject.group}/${subject._id}`}
+                    to={`/questions/${subject?.level}/${subject?.group}/${subject?._id}`}
                     className="flex items-center justify-between w-full px-4 py-2.5 bg-secondary text-foreground text-xs font-medium rounded-md hover:bg-muted transition-colors group/btn"
                   >
                     <span>View Questions</span>
@@ -272,7 +272,7 @@ const SubjectsPage = () => {
                   </NavLink>
                   
                   <NavLink
-                    to={"/add-cq"}
+                    to={`/add-cq?subject=${subject?._id}&level=${subject?.level}&group=${subject?.group}`}
                     className="flex items-center justify-between w-full px-4 py-2.5 border border-border text-foreground text-xs font-medium rounded-md hover:border-primary hover:bg-secondary transition-colors group/btn"
                   >
                     <span>Add Questions</span>
