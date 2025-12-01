@@ -1,7 +1,6 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
 import Home from "./pages/Home"
 import Login from "./components/form/Login"
-import Chat from "./pages/subpages/Chat"
 import AddCreativeQuestionPage from "./pages/subpages/AddCq"
 import 'katex/dist/katex.min.css';
 import SubjectsPage from "./pages/subpages/Subject"
