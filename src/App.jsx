@@ -11,7 +11,6 @@ import ViewQuestion from "./pages/subpages/ViewQuestion"
 import SubjectManagementPage from "./components/Subject/SubjectManagementPage"
 import SubjectQuestions from "./pages/subpages/SubjectQuestions"
 import EditCqPage from "./pages/subpages/EditCq"
-import EditCqPage from "./pages/subpages/EditCq"
 import ErrorBoundary from "./components/ErrorBoundary"
 import ProtectedRoute from "./components/ProtectedRoute"
 
