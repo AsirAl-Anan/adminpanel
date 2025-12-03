@@ -399,12 +399,12 @@ const AddCqPage = () => {
   return (
     <div className="min-h-screen bg-slate-50/80">
       <div className="max-w-7xl mx-auto py-4 px-2 sm:py-6 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between py-4">
           <div>
-            <button onClick={() => navigate(-1)} className="group inline-flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors mb-2">
-              <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" /> Back to List
+            <button onClick={() => navigate(-1)} className="group  inline-flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors mb-2">
+              <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1 hover:text-underline" /> Back to List
             </button>
-            <h1 className="text-3xl font-extrabold text-slate-900 flex items-center tracking-tight">
+            <h1 className="text-lg lg:text-xl font-extrabold text-slate-900 flex items-center tracking-tight">
               <span className="bg-blue-600 text-white p-2 rounded-lg mr-3 shadow-lg shadow-blue-200">
                 <BookOpen className="w-6 h-6" />
               </span>

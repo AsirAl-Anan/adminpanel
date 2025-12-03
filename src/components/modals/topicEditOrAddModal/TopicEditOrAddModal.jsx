@@ -75,22 +75,22 @@ const TopicAddOrEditModal = ({
           ) {
             return false
           } else {
-             for(const formula of section.formulas || []){
+            for (const formula of section.formulas || []) {
               console.log("inside")
-            if(formula.name?.en?.trim() || formula.name?.bn?.trim() || formula.description?.en?.trim() || formula.description?.bn?.trim()|| formula.equation?.trim() ){
-              console.log("yay")
-              if(!formula.name?.en?.trim() || !formula.name?.bn?.trim() || !formula.description?.en?.trim() || !formula.description?.bn?.trim()|| !formula.equation?.trim()){
-                console.log("formula", formula)
-                console.log("nay")
-                return false
-            } else {
-              return true
+              if (formula.name?.en?.trim() || formula.name?.bn?.trim() || formula.description?.en?.trim() || formula.description?.bn?.trim() || formula.equation?.trim()) {
+                console.log("yay")
+                if (!formula.name?.en?.trim() || !formula.name?.bn?.trim() || !formula.description?.en?.trim() || !formula.description?.bn?.trim() || !formula.equation?.trim()) {
+                  console.log("formula", formula)
+                  console.log("nay")
+                  return false
+                } else {
+                  return true
+                }
+              }
+
             }
-            }
-          
           }
-          }
-         
+
         }
       }
       return true
@@ -568,30 +568,30 @@ const TopicAddOrEditModal = ({
                         </svg>
                         Add Question Type
                       </button>
-                          <div className="pl-4 mt-2 space-y-2">
-                            {questionTypeTabs.map((tab, index) => (
-                              <div key={tab.id} className="flex items-center justify-between group">
-                                <button
-                                  onClick={() => setActiveTab(tab.id)}
-                                  className={`flex-1 px-4 py-2 text-left text-sm font-medium rounded-md transition-colors ${activeTab === tab.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
-                                >
-                                  {tab.label}
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    removeQuestionType(index)
-                                  }}
-                                  className="ml-2 p-1 text-red-500 hover:bg-red-100 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
-                                  aria-label={`Delete ${tab.label}`}
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                  </svg>
-                                </button>
-                              </div>
-                            ))}
+                      <div className="pl-4 mt-2 space-y-2">
+                        {questionTypeTabs.map((tab, index) => (
+                          <div key={tab.id} className="flex items-center justify-between group">
+                            <button
+                              onClick={() => setActiveTab(tab.id)}
+                              className={`flex-1 px-4 py-2 text-left text-sm font-medium rounded-md transition-colors ${activeTab === tab.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
+                            >
+                              {tab.label}
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                removeQuestionType(index)
+                              }}
+                              className="ml-2 p-1 text-red-500 hover:bg-red-100 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label={`Delete ${tab.label}`}
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
                           </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -653,25 +653,15 @@ const TopicAddOrEditModal = ({
             {isDrawerOpen && (
               <>
                 {/* Backdrop */}
-                <div 
+                <div
                   className="absolute inset-0 bg-black/20 z-20 md:hidden"
                   onClick={() => setIsDrawerOpen(false)}
                 />
-                
+
                 {/* Drawer Panel */}
                 <div className="absolute top-0 left-0 bottom-0 w-64 bg-card shadow-2xl z-30 md:hidden animate-in slide-in-from-left duration-200 border-r">
-                  {/* Drawer Header */}
-                  <div className="bg-gradient-to-r from-primary to-primary/90 px-4 py-3 text-primary-foreground flex items-center justify-between">
-                    <h3 className="font-semibold">Navigation</h3>
-                    <button
-                      onClick={() => setIsDrawerOpen(false)}
-                      className="p-1 hover:bg-primary/80 rounded-md transition-colors"
-                      aria-label="Close navigation"
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-                  
+                
+
                   {/* Drawer Content */}
                   <nav className="flex flex-col p-3 space-y-1 overflow-y-auto h-[calc(100%-3.5rem)]">
                     <button
@@ -685,7 +675,7 @@ const TopicAddOrEditModal = ({
                       Basic Info
                     </button>
 
-                    {(newTopic.questionTypes || []).length > 0 && (
+                    {(newTopic.questionTypes || []) && (
                       <div>
                         <button
                           onClick={() => setIsQuestionTypesAccordionOpen(!isQuestionTypesAccordionOpen)}
@@ -745,7 +735,7 @@ const TopicAddOrEditModal = ({
                       </div>
                     )}
 
-                    {(newTopic.articles || []).length > 0 && (
+                    {(newTopic.articles || []) && (
                       <div>
                         <button
                           onClick={() => setIsArticlesAccordionOpen(!isArticlesAccordionOpen)}
