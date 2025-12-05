@@ -51,48 +51,6 @@ const TopicAddOrEditModal = ({
 
   useEffect(() => {
     const validate = () => {
-      if (!newTopic.name?.en?.trim() || !newTopic.name?.bn?.trim() || !newTopic.topicNumber?.trim()) {
-        return false
-      }
-
-      // Validate articles and sections
-      const articles = newTopic.articles || []
-      if (articles.length === 0) {
-        return false // No articles, so invalid
-      }
-
-      for (const article of articles) {
-        const sections = article.sections || []
-        if (sections.length === 0) {
-          return false // Article has no sections, so invalid
-        }
-        for (const section of sections) {
-          if (
-            !section.title?.en?.trim() ||
-            !section.title?.bn?.trim() ||
-            !section.body?.en?.trim() ||
-            !section.body?.bn?.trim()
-          ) {
-            return false
-          } else {
-            for (const formula of section.formulas || []) {
-              console.log("inside")
-              if (formula.name?.en?.trim() || formula.name?.bn?.trim() || formula.description?.en?.trim() || formula.description?.bn?.trim() || formula.equation?.trim()) {
-                console.log("yay")
-                if (!formula.name?.en?.trim() || !formula.name?.bn?.trim() || !formula.description?.en?.trim() || !formula.description?.bn?.trim() || !formula.equation?.trim()) {
-                  console.log("formula", formula)
-                  console.log("nay")
-                  return false
-                } else {
-                  return true
-                }
-              }
-
-            }
-          }
-
-        }
-      }
       return true
     }
     setIsFormValid(validate())
@@ -660,7 +618,7 @@ const TopicAddOrEditModal = ({
 
                 {/* Drawer Panel */}
                 <div className="absolute top-0 left-0 bottom-0 w-64 bg-card shadow-2xl z-30 md:hidden animate-in slide-in-from-left duration-200 border-r">
-                
+
 
                   {/* Drawer Content */}
                   <nav className="flex flex-col p-3 space-y-1 overflow-y-auto h-[calc(100%-3.5rem)]">
