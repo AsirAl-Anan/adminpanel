@@ -1,4 +1,3 @@
-0000000000000000000000000000000000000000 0988a2565775dd544954a18990939f488376364b unknown <asiralanan@gmail.com> 1763045984 +0600	commit (initial): first commit
-0988a2565775dd544954a18990939f488376364b 0000000000000000000000000000000000000000 unknown <asiralanan@gmail.com> 1763045984 +0600	Branch: renamed refs/heads/master to refs/heads/main
-0000000000000000000000000000000000000000 0988a2565775dd544954a18990939f488376364b unknown <asiralanan@gmail.com> 1763045984 +0600	Branch: renamed refs/heads/master to refs/heads/main
-0988a2565775dd544954a18990939f488376364b ff446d39e19ad07d568cf2ddc8f7800e9b542618 unknown <asiralanan@gmail.com> 1763046055 +0600	commit: initial commit
+0000000000000000000000000000000000000000 1b69e8f0f5ca4ac4ff354324298064b5e1d55ab4 unknown <asiralanan@gmail.com> 1763007717 +0600	commit (initial): changed the structure of the app drastically
+1b69e8f0f5ca4ac4ff354324298064b5e1d55ab4 bd577d335ce11ad80b25c3563d822b05c2fca898 unknown <asiralanan@gmail.com> 1763007804 +0600	checkout: moving from master to main
+bd577d335ce11ad80b25c3563d822b05c2fca898 1b69e8f0f5ca4ac4ff354324298064b5e1d55ab4 unknown <asiralanan@gmail.com> 1763008113 +0600	checkout: moving from main to 1b69e8f

@@ -1,0 +1,760 @@
+{
+  "sscScienceSubjects": [
+    {
+      "BanglaFirstPaper": {
+        "গদ্য": [
+          "শুভা",
+          "বইপড়া",
+          "আম-আঁটির ভেঁপু",
+          "মানব ধর্ম",
+          "শিক্ষা ও মনুষ্যত্ব"
+        ],
+        "পদ্য": [
+          "বঙ্গবাণী",
+          "কপোতাক্ষ নদ",
+          "জীবন সঙ্গীত",
+          "পল্লী জননী",
+          "তোমাকে পাওয়ার জন্য, হে স্বাধীনতা"
+        ],
+        "উপন্যাস": [
+          "কাকতাড়ুয়া - মূলভাব, চরিত্র, ঘটনা"
+        ],
+        "নাটক": [
+          "বহিপীর - মূলভাব, চরিত্র, ঘটনা"
+        ]
+      }
+    },
+    {
+      "BanglaSecondPaper": {
+        "ব্যাকরণ": [
+          "ধ্বনি ও বর্ণ",
+          "সন্ধি",
+          "সমাস",
+          "উপসর্গ",
+          "প্রত্যয়",
+          "বাক্য প্রকরণ",
+          "কারক ও বিভক্তি"
+        ],
+        "নির্মিতি": [
+          "ভাবসম্প্রসারণ",
+          "সারাংশ/সারমর্ম",
+          "প্রবন্ধ রচনা",
+          "পত্র লিখন/আবেদনপত্র",
+          "প্রতিবেদন লিখন"
+        ]
+      }
+    },
+    {
+      "EnglishFirstPaper": {
+        "ReadingTest": [
+          "Unseen Passage (Information Transfer, Summarizing)",
+          "Seen Passage (MCQ, Answering Questions)"
+        ],
+        "WritingTest": [
+          "Paragraph Writing",
+          "Completing Story",
+          "Email Writing",
+          "Dialogue Writing",
+          "Graph/Chart Description"
+        ]
+      }
+    },
+    {
+      "EnglishSecondPaper": {
+        "Grammar": [
+          "Articles",
+          "Prepositions",
+          "Right Forms of Verbs",
+          "Narration",
+          "Transformation of Sentences",
+          "Tag Questions",
+          "Punctuation"
+        ],
+        "Composition": [
+          "CV Writing with Cover Letter",
+          "Formal Letter Writing",
+          "Paragraph Writing",
+          "Composition Writing"
+        ]
+      }
+    },
+    {
+      "Mathematics": {
+        "SetAndFunction": [
+          "Set Operations",
+          "Types of Functions"
+        ],
+        "AlgebraicExpressions": [
+          "Factorization",
+          "Rational Fractions",
+          "Equations"
+        ],
+        "Geometry": [
+          "Theorems on Circles",
+          "Construction",
+          "Solid Geometry (Prism, Pyramid)"
+        ],
+        "Trigonometry": [
+          "Trigonometric Ratios",
+          "Heights and Distances"
+        ],
+        "Statistics": [
+          "Measures of Central Tendency",
+          "Measures of Dispersion",
+          "Frequency Distribution"
+        ]
+      }
+    },
+    {
+      "Physics": {
+        "PhysicalQuantitiesAndMeasurement": [
+          "Units",
+          "Measurement Tools"
+        ],
+        "Motion": [
+          "Velocity",
+          "Acceleration",
+          "Equations of Motion"
+        ],
+        "Force": [
+          "Newton's Laws",
+          "Friction",
+          "Work, Power, Energy"
+        ],
+        "Light": [
+          "Reflection",
+          "Refraction",
+          "Lenses"
+        ],
+        "ElectricityAndMagnetism": [
+          "Ohm's Law",
+          "Circuits",
+          "Magnetic Fields"
+        ]
+      }
+    },
+    {
+      "Chemistry": {
+        "ConceptOfChemistry": [
+          "Branches of Chemistry",
+          "Importance"
+        ],
+        "StatesOfMatter": [
+          "Gas Laws",
+          "Phase Changes"
+        ],
+        "StructureOfAtom": [
+          "Atomic Models",
+          "Electronic Configuration"
+        ],
+        "ChemicalBonding": [
+          "Ionic Bond",
+          "Covalent Bond"
+        ],
+        "AcidsBasesAndSalts": [
+          "pH Scale",
+          "Neutralization"
+        ]
+      }
+    },
+    {
+      "Biology": {
+        "LifeAndItsDiversity": [
+          "Classification of Organisms"
+        ],
+        "CellAndTissue": [
+          "Cell Structure",
+          "Types of Tissues"
+        ],
+        "Nutrition": [
+          "Digestion",
+          "Vitamins"
+        ],
+        "Respiration": [
+          "Aerobic Respiration",
+          "Anaerobic Respiration"
+        ],
+        "Reproduction": [
+          "Sexual Reproduction",
+          "Asexual Reproduction"
+        ]
+      }
+    },
+    {
+      "HigherMathematics": {
+        "Algebra": [
+          "Polynomials",
+          "Partial Fractions",
+          "Sequence and Series"
+        ],
+        "Geometry": [
+          "Coordinate Geometry",
+          "Vectors"
+        ],
+        "Trigonometry": [
+          "Compound Angles",
+          "General Solutions"
+        ],
+        "Probability": [
+          "Basic Probability",
+          "Conditional Probability"
+        ]
+      }
+    },
+    {
+      "InformationAndCommunicationTechnologyICT": {
+        "InformationAndCommunicationTechnologyAndOurBangladesh": [
+          "ICT in daily life",
+          "Digital Bangladesh"
+        ],
+        "ComputerAndComputerUserSecurity": [
+          "Malware",
+          "Cybercrime"
+        ],
+        "MyEducationAndInternet": [
+          "Online learning resources"
+        ],
+        "MyLifeAndICT": [
+          "Impact of ICT on society"
+        ],
+        "UseOfMultimedia": [
+          "Graphics",
+          "Animation"
+        ],
+        "Database": [
+          "Introduction to Database",
+          "Data types"
+        ]
+      }
+    }
+  ],
+  "sscArtsSubjects": [
+    {
+      "BanglaFirstPaper": {
+        "গদ্য (Prose)": [
+          "শুভা",
+          "বইপড়া",
+          "আম-আঁটির ভেঁপু",
+          "মানব ধর্ম",
+          "শিক্ষা ও মনুষ্যত্ব"
+        ],
+        "পদ্য (Poetry)": [
+          "বঙ্গবাণী",
+          "কপোতাক্ষ নদ",
+          "জীবন সঙ্গীত",
+          "পল্লী জননী",
+          "তোমাকে পাওয়ার জন্য, হে স্বাধীনতা"
+        ],
+        "উপন্যাস (Novel)": [
+          "কাকতাড়ুয়া - মূলভাব, চরিত্র, ঘটনা"
+        ],
+        "নাটক (Drama)": [
+          "বহিপীর - মূলভাব, চরিত্র, ঘটনা"
+        ]
+      }
+    },
+    {
+      "BanglaSecondPaper": {
+        "ব্যাকরণ (Grammar)": [
+          "ধ্বনি ও বর্ণ",
+          "সন্ধি",
+          "সমাস",
+          "উপসর্গ",
+          "প্রত্যয়",
+          "বাক্য প্রকরণ",
+          "কারক ও বিভক্তি"
+        ],
+        "নির্মিতি (Composition)": [
+          "ভাবসম্প্রসারণ",
+          "সারাংশ/সারমর্ম",
+          "প্রবন্ধ রচনা",
+          "পত্র লিখন/আবেদনপত্র",
+          "প্রতিবেদন লিখন"
+        ]
+      }
+    },
+    {
+      "EnglishFirstPaper": {
+        "ReadingTest": [
+          "Unseen Passage (Information Transfer, Summarizing)",
+          "Seen Passage (MCQ, Answering Questions)"
+        ],
+        "WritingTest": [
+          "Paragraph Writing",
+          "Completing Story",
+          "Email Writing",
+          "Dialogue Writing",
+          "Graph/Chart Description"
+        ]
+      }
+    },
+    {
+      "EnglishSecondPaper": {
+        "Grammar": [
+          "Articles",
+          "Prepositions",
+          "Right Forms of Verbs",
+          "Narration",
+          "Transformation of Sentences",
+          "Tag Questions",
+          "Punctuation"
+        ],
+        "Composition": [
+          "CV Writing with Cover Letter",
+          "Formal Letter Writing",
+          "Paragraph Writing",
+          "Composition Writing"
+        ]
+      }
+    },
+    {
+      "Mathematics": {
+        "SetAndFunction": [
+          "Set Operations",
+          "Types of Functions"
+        ],
+        "AlgebraicExpressions": [
+          "Factorization",
+          "Rational Fractions",
+          "Equations"
+        ],
+        "Geometry": [
+          "Theorems on Circles",
+          "Construction",
+          "Solid Geometry (Prism, Pyramid)"
+        ],
+        "Trigonometry": [
+          "Trigonometric Ratios",
+          "Heights and Distances"
+        ],
+        "Statistics": [
+          "Measures of Central Tendency",
+          "Measures of Dispersion",
+          "Frequency Distribution"
+        ]
+      }
+    },
+    {
+      "HistoryOfBangladeshAndWorldCivilization": {
+        "AncientBengal": [
+          "Early Civilizations",
+          "Gupta Period"
+        ],
+        "MedievalBengal": [
+          "Sultanate Period",
+          "Mughal Period"
+        ],
+        "BritishRuleInIndia": [
+          "Sepoy Mutiny",
+          "Partition of Bengal"
+        ],
+        "EmergenceOfBangladesh": [
+          "Language Movement",
+          "Six-Point Movement",
+          "Liberation War"
+        ],
+        "WorldCivilizations": [
+          "Ancient Egypt",
+          "Ancient Greece",
+          "Ancient Rome"
+        ]
+      }
+    },
+    {
+      "CivicsAndCitizenship": {
+        "ConceptOfCivicsAndCitizenship": [
+          "Definition",
+          "Scope"
+        ],
+        "StateAndGovernment": [
+          "Elements of State",
+          "Forms of Government"
+        ],
+        "Constitution": [
+          "Features of Bangladesh Constitution"
+        ],
+        "HumanRights": [
+          "Universal Declaration of Human Rights"
+        ],
+        "LawLibertyAndEquality": [
+          "Rule of Law"
+        ]
+      }
+    },
+    {
+      "Economics": {
+        "IntroductionToEconomics": [
+          "Scarcity",
+          "Choice"
+        ],
+        "Production": [
+          "Factors of Production"
+        ],
+        "Market": [
+          "Types of Market"
+        ],
+        "MoneyAndBanking": [
+          "Functions of Money",
+          "Central Bank"
+        ],
+        "DevelopmentEconomics": [
+          "Economic Growth",
+          "Poverty Alleviation"
+        ]
+      }
+    },
+    {
+      "GeographyAndEnvironment": {
+        "IntroductionToGeographyAndEnvironment": [
+          "Scope of Geography"
+        ],
+        "EarthsStructure": [
+          "Layers of Earth"
+        ],
+        "ClimateAndWeather": [
+          "Climate Zones",
+          "Greenhouse Effect"
+        ],
+        "RiversAndNaturalResources": [
+          "River Systems of Bangladesh",
+          "Mineral Resources"
+        ],
+        "PopulationAndSettlement": [
+          "Population Growth",
+          "Urbanization"
+        ]
+      }
+    },
+    {
+      "InformationAndCommunicationTechnologyICT": {
+        "InformationAndCommunicationTechnologyAndOurBangladesh": [
+          "ICT in daily life",
+          "Digital Bangladesh"
+        ],
+        "ComputerAndComputerUserSecurity": [
+          "Malware",
+          "Cybercrime"
+        ],
+        "MyEducationAndInternet": [
+          "Online learning resources"
+        ],
+        "MyLifeAndICT": [
+          "Impact of ICT on society"
+        ],
+        "UseOfMultimedia": [
+          "Graphics",
+          "Animation"
+        ],
+        "Database": [
+          "Introduction to Database",
+          "Data types"
+        ]
+      }
+    }
+  ],
+  "hscScienceSubjects": [
+    {
+      "BanglaFirstPaper": {
+        "গদ্য": [
+          " অপরিচিতা",
+          " বিলাসী",
+          " আমার পথ",
+          " মাসি-পিসি",
+          " বায়ান্নর দিনগুলো"
+        ],
+        "পদ্য": [
+          " সোনার তরী",
+          " বিদ্রোহী",
+          " ঐকতান",
+          " আঠারো বছর বয়স",
+          " ফেব্রুয়ারি ১৯৬৯"
+        ],
+        "উপন্যাস": [
+          " লালসালু - মূলভাব, চরিত্র, ঘটনা, প্রতীকী অর্থ"
+        ],
+        "নাটক": [
+          " সিরাজউদ্দৌলা - মূলভাব, চরিত্র, ঘটনা, ঐতিহাসিক প্রেক্ষাপট"
+        ]
+      }
+    },
+    {
+      "BanglaSecondPaper": {
+        "ব্যাকরণ": [
+          "বাংলা উচ্চারণের নিয়ম",
+          "বাংলা বানানের নিয়ম",
+          "বাংলা ভাষার ব্যাকরণিক শব্দশ্রেণি",
+          "বাংলা শব্দগঠন (উপসর্গ, প্রত্যয়, সমাস)",
+          "বাক্যতত্ত্ব",
+          "বাংলা ভাষার অপপ্রয়োগ ও শুদ্ধ প্রয়োগ"
+        ],
+        "নির্মিতি": [
+          "দিনলিপি লিখন",
+          "অভিজ্ঞতা বর্ণনা",
+          "ভাষণ লিখন",
+          "আবেদনপত্র/স্মারকলিপি",
+          "প্রতিবেদন লিখন",
+          "সারাংশ/সারমর্ম",
+          "ভাবসম্প্রসারণ",
+          "প্রবন্ধ রচনা"
+        ]
+      }
+    },
+    {
+      "EnglishFirstPaper": {
+        "ReadingTest": [
+          "Unseen Passage (Information Transfer, Summarizing, Cloze Test without Clues)",
+          "Seen Passage (MCQ, Answering Questions, Gap Filling with Clues)"
+        ],
+        "WritingTest": [
+          "Paragraph Writing (Descriptive, Narrative, Argumentative)",
+          "Story Writing",
+          "Email Writing",
+          "Formal Letter Writing (Complaint, Order, Application)",
+          "Report Writing",
+          "Composition Writing"
+        ]
+      }
+    },
+    {
+      "EnglishSecondPaper": {
+        "Grammar": [
+          "Articles",
+          "Prepositions",
+          "Right Forms of Verbs",
+          "Narration",
+          "Transformation of Sentences",
+          "Completing Sentences",
+          "Use of Connectors",
+          "Pronoun Reference",
+          "Modifiers",
+          "Synonyms and Antonyms",
+          "Punctuation"
+        ],
+        "Composition": [
+          "CV Writing with Cover Letter",
+          "Formal Letter Writing",
+          "Paragraph Writing",
+          "Composition Writing"
+        ]
+      }
+    },
+    {
+      "PhysicsFirstPaper": {
+        "PhysicalWorldAndMeasurement": [
+          "Units and Dimensions",
+          "Error Analysis"
+        ],
+        "Vectors": [
+          "Vector Addition",
+          "Dot Product",
+          "Cross Product"
+        ],
+        "Dynamics": [
+          "Newton's Laws of Motion",
+          "Work, Power, Energy",
+          "Conservation Laws"
+        ],
+        "CircularMotionAndGravitation": [
+          "Centripetal Force",
+          "Kepler's Laws"
+        ],
+        "PropertiesOfMatter": [
+          "Elasticity",
+          "Surface Tension",
+          "Viscosity"
+        ],
+        "Oscillations": [
+          "Simple Harmonic Motion (SHM)",
+          "Damped Oscillations"
+        ],
+        "Waves": [
+          "Types of Waves",
+          "Sound Waves",
+          "Doppler Effect"
+        ]
+      }
+    },
+    {
+      "PhysicsSecondPaper": {
+        "HeatAndThermodynamics": [
+          "Zeroth Law",
+          "First Law of Thermodynamics",
+          "Carnot Cycle"
+        ],
+        "Electrostatics": [
+          "Coulomb's Law",
+          "Electric Field",
+          "Capacitance"
+        ],
+        "CurrentElectricity": [
+          "Ohm's Law",
+          "Kirchhoff's Laws",
+          "AC Circuits"
+        ],
+        "MagneticEffectsOfCurrentAndMagnetism": [
+          "Biot-Savart Law",
+          "Ampere's Law",
+          "Faraday's Law"
+        ],
+        "Optics": [
+          "Interference",
+          "Diffraction",
+          "Polarization"
+        ],
+        "ModernPhysics": [
+          "Photoelectric Effect",
+          "Bohr's Model",
+          "Radioactivity"
+        ],
+        "SemiconductorsAndElectronics": [
+          "PN Junction Diode",
+          "Transistors"
+        ]
+      }
+    },
+    {
+      "ChemistryFirstPaper": {
+        "QualitativeChemistry": [
+          "Atomic Structure",
+          "Quantum Numbers",
+          "Spectroscopy"
+        ],
+        "PeriodicTableAndChemicalBonding": [
+          "Periodic Properties",
+          "Hybridization",
+          "Molecular Orbital Theory"
+        ],
+        "QuantitativeChemistry": [
+          "Stoichiometry",
+          "Limiting Reactant",
+          "Titration"
+        ],
+        "ChemicalChanges": [
+          "Reaction Rate",
+          "Chemical Equilibrium",
+          "pH and Buffers"
+        ],
+        "WorkingWithChemistry": [
+          "Laboratory Safety",
+          "Volumetric Analysis"
+        ]
+      }
+    },
+    {
+      "ChemistrySecondPaper": {
+        "OrganicChemistry": [
+          "Nomenclature",
+          "Isomerism",
+          "Reactions of Alkanes",
+          "Alkenes",
+          "Alkynes",
+          "Aromatic Compounds"
+        ],
+        "EnvironmentalChemistry": [
+          "Air Pollution",
+          "Water Pollution",
+          "Soil Pollution"
+        ],
+        "Electrochemistry": [
+          "Electrochemical Cells",
+          "Electrolysis"
+        ],
+        "IndustrialChemistry": [
+          "Production of Fertilizers",
+          "Glass",
+          "Cement"
+        ],
+        "Biochemistry": [
+          "Carbohydrates",
+          "Proteins",
+          "Lipids"
+        ]
+      }
+    },
+    {
+      "BiologyFirstPaperBotany": {
+        "CellAndItsStructure": [
+          "Cell Organelles",
+          "Cell Division"
+        ],
+        "PlantClassification": [
+          "Algae",
+          "Fungi",
+          "Bryophytes",
+          "Pteridophytes",
+          "Gymnosperms",
+          "Angiosperms"
+        ],
+        "PlantPhysiology": [
+          "Photosynthesis",
+          "Respiration",
+          "Transpiration"
+        ],
+        "PlantReproduction": [
+          "Sexual Reproduction in Plants",
+          "Asexual Reproduction"
+        ],
+        "Biotechnology": [
+          "Genetic Engineering",
+          "Tissue Culture"
+        ]
+      }
+    },
+    {
+      "BiologySecondPaperZoology": {
+        "ClassificationOfAnimals": [
+          "Invertebrates",
+          "Vertebrates"
+        ],
+        "HumanPhysiology": [
+          "Digestive System",
+          "Respiratory System",
+          "Circulatory System",
+          "Nervous System",
+          "Excretory System"
+        ],
+        "ReproductionAndDevelopment": [
+          "Human Reproduction",
+          "Embryonic Development"
+        ],
+        "GeneticsAndEvolution": [
+          "Mendelian Genetics",
+          "DNA",
+          "RNA",
+          "Evolutionary Theories"
+        ],
+        "EnvironmentalBiology": [
+          "Ecosystem",
+          "Biodiversity",
+          "Conservation"
+        ]
+      }
+    },
+    {
+      "InformationAndCommunicationTechnologyICT": {
+        "InformationAndCommunicationTechnologyAndOurBangladesh": [
+          "ICT in daily life",
+          "Digital Bangladesh"
+        ],
+        "ComputerAndComputerUserSecurity": [
+          "Malware",
+          "Cybercrime"
+        ],
+        "MyEducationAndInternet": [
+          "Online learning resources"
+        ],
+        "MyLifeAndICT": [
+          "Impact of ICT on society"
+        ],
+        "UseOfMultimedia": [
+          "Graphics",
+          "Animation"
+        ],
+        "Database": [
+          "Introduction to Database",
+          "Data types"
+        ]
+      }
+    }
+  ]
+}

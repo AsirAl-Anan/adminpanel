@@ -10,15 +10,7 @@ const TopicList = ({ subjectId, chapterId, topics, onUpdate, subjectLevel, subje
 
   // --- STEP 1: RESTORED ---
   // We are back to initializing the modal's state from localStorage. This is CORRECT for your refresh requirement.
-  const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(() => {
-    try {
-      const storedState = localStorage.getItem("isAddEditTopicModalOpen")
-      return storedState ? JSON.parse(storedState) : false
-    } catch (error) {
-      console.error("Failed to read isAddEditTopicModalOpen from localStorage", error)
-      return false
-    }
-  })
+  const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false)
 
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingTopicId, setEditingTopicId] = useState(null)
@@ -40,7 +32,7 @@ const TopicList = ({ subjectId, chapterId, topics, onUpdate, subjectLevel, subje
   // The draft logic remains correct and untouched.
   const [newTopic, setNewTopic] = useState(() => {
     try {
-      const storedDraft = localStorage.getItem("unsavedTopicDraft")
+      const storedDraft = localStorage.getItem(`unsavedTopicDraft_${chapterId}`)
       return storedDraft ? JSON.parse(storedDraft) : getInitialTopicState()
     } catch (error) {
       console.error("Failed to read unsavedTopicDraft from localStorage", error)
@@ -66,33 +58,33 @@ const TopicList = ({ subjectId, chapterId, topics, onUpdate, subjectLevel, subje
         articles:
           topic.articles?.length > 0
             ? topic.articles.map((article) => ({
-                learningOutcomes: article.learningOutcomes || { en: "", bn: "" },
-                body: article.body || { en: "", bn: "" },
-                formulas: article.formulas || [],
-                sections:
-                  article.sections?.length > 0
-                    ? article.sections.map((sec) => ({
-                        ...sec,
-                        images:
-                          sec.images?.map((img) => ({
-                            url: img.url,
-                            caption: img.caption || { en: "", bn: "" },
-                            description: img.description || { en: "", bn: "" },
-                            order: img.order || 0,
-                          })) || [],
-                        videos: sec.videos || [],
-                        examples: sec.examples || [],
-                        formulas: sec.formulas || [],
-                      }))
-                    : getInitialTopicState().articles[0].sections,
-                relatedCreativeQuestions: article.relatedCreativeQuestions || [],
-                relatedMCQs: article.relatedMCQs || [],
-                relatedQuestions: [],
-              }))
+              learningOutcomes: article.learningOutcomes || { en: "", bn: "" },
+              body: article.body || { en: "", bn: "" },
+              formulas: article.formulas || [],
+              sections:
+                article.sections?.length > 0
+                  ? article.sections.map((sec) => ({
+                    ...sec,
+                    images:
+                      sec.images?.map((img) => ({
+                        url: img.url,
+                        caption: img.caption || { en: "", bn: "" },
+                        description: img.description || { en: "", bn: "" },
+                        order: img.order || 0,
+                      })) || [],
+                    videos: sec.videos || [],
+                    examples: sec.examples || [],
+                    formulas: sec.formulas || [],
+                  }))
+                  : getInitialTopicState().articles[0].sections,
+              relatedCreativeQuestions: article.relatedCreativeQuestions || [],
+              relatedMCQs: article.relatedMCQs || [],
+              relatedQuestions: [],
+            }))
             : getInitialTopicState().articles,
       })
       try {
-        localStorage.removeItem("unsavedTopicDraft")
+        localStorage.removeItem(`unsavedTopicDraft_${chapterId}`)
       } catch (error) {
         console.error("Failed to clear unsavedTopicDraft from localStorage", error)
       }
@@ -100,7 +92,7 @@ const TopicList = ({ subjectId, chapterId, topics, onUpdate, subjectLevel, subje
       setIsEditMode(false)
       setEditingTopicId(null)
       try {
-        const storedDraft = localStorage.getItem("unsavedTopicDraft")
+        const storedDraft = localStorage.getItem(`unsavedTopicDraft_${chapterId}`)
         setNewTopic(storedDraft ? JSON.parse(storedDraft) : getInitialTopicState())
       } catch (error) {
         console.error("Failed to read unsavedTopicDraft from localStorage", error)
@@ -111,13 +103,7 @@ const TopicList = ({ subjectId, chapterId, topics, onUpdate, subjectLevel, subje
 
   // --- STEP 2: RESTORED ---
   // This useEffect is also CORRECT for your refresh requirement. It saves the modal state.
-  useEffect(() => {
-    try {
-      localStorage.setItem("isAddEditTopicModalOpen", JSON.stringify(isAddEditModalOpen))
-    } catch (error) {
-      console.error("Failed to write isAddEditTopicModalOpen to localStorage", error)
-    }
-  }, [isAddEditModalOpen])
+
 
   const openAddEditModal = (topic = null) => {
     initializeForm(topic)
@@ -130,13 +116,6 @@ const TopicList = ({ subjectId, chapterId, topics, onUpdate, subjectLevel, subje
   const closeAddEditModal = () => {
     setIsAddEditModalOpen(false) // Update React state
     setNewTopic(getInitialTopicState()) // Reset the form
-    try {
-      // Immediately remove the item from localStorage. This prevents the modal
-      // from re-opening during the re-render caused by a successful submission.
-      localStorage.removeItem("isAddEditTopicModalOpen")
-    } catch (error) {
-      console.error("Failed to clear isAddEditTopicModalOpen from localStorage", error)
-    }
   }
 
   const openTopicsModal = () => setIsTopicsModalOpen(true)
@@ -155,7 +134,7 @@ const TopicList = ({ subjectId, chapterId, topics, onUpdate, subjectLevel, subje
         console.log("response adding topic", response)
         onUpdate()
         try {
-          localStorage.removeItem("unsavedTopicDraft")
+          localStorage.removeItem(`unsavedTopicDraft_${chapterId}`)
         } catch (error) {
           console.error("Failed to clear unsavedTopicDraft from localStorage", error)
         }
@@ -354,6 +333,7 @@ const TopicList = ({ subjectId, chapterId, topics, onUpdate, subjectLevel, subje
           loading={loading}
           subjectLevel={newTopic.level}
           subjectGroup={newTopic.group}
+          chapterId={chapterId}
         />
       )}
     </>

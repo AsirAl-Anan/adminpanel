@@ -22,6 +22,7 @@ import { useLocation, NavLink, useParams } from "react-router-dom"
 import axios from "../../config/axios.js"
 import LatexRenderer from "./LatexRenderer.jsx" // Assuming this exists
 import { HashLoader } from "react-spinners"
+import { toast } from "sonner"
 
 /**
  * REFACTORED COMPONENT: BilingualContentRenderer
@@ -166,6 +167,25 @@ const QuestionBankPage = () => {
 
   const isAnswerExpanded = (questionId, part) => expandedAnswers[`${questionId}-${part}`] || false
 
+  const onDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this question? This action cannot be undone.")) {
+      return
+    }
+
+    try {
+      const response = await axios.delete(`/qb/${id}`)
+      if (response.data.success) {
+        toast.success("Question deleted successfully")
+        setQuestions((prev) => prev.filter((q) => q._id !== id))
+      } else {
+        toast.error(response.data.message || "Failed to delete question")
+      }
+    } catch (error) {
+      console.error("Error deleting question:", error)
+      toast.error(error.response?.data?.message || "Error deleting question")
+    }
+  }
+
   if (loading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background/90 backdrop-blur-sm z-50">
@@ -229,7 +249,11 @@ const QuestionBankPage = () => {
                     <NavLink to={`/questions/edit/${question._id}`} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Edit">
                       <Edit size={16} />
                     </NavLink>
-                    <button className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete">
+                    <button
+                      onClick={() => onDelete(question._id)}
+                      className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                      title="Delete"
+                    >
                       <Trash2 size={16} />
                     </button>
                   </div>

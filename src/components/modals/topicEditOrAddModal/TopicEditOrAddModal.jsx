@@ -20,6 +20,7 @@ const TopicAddOrEditModal = ({
   setNewTopic,
   handleAddTopic,
   handleEditTopic,
+  chapterId,
 }) => {
   const [activeTab, setActiveTab] = useState("basic")
   const [loading, setLoading] = useState(false) // Internal loading state for the modal
@@ -60,12 +61,12 @@ const TopicAddOrEditModal = ({
     // Save newTopic to localStorage if it's a new topic (not in edit mode)
     if (!isEditMode) {
       try {
-        localStorage.setItem("unsavedTopicDraft", JSON.stringify(newTopic))
+        localStorage.setItem(`unsavedTopicDraft_${chapterId}`, JSON.stringify(newTopic))
       } catch (error) {
         console.error("Failed to write unsavedTopicDraft to localStorage", error)
       }
     }
-  }, [newTopic, isEditMode])
+  }, [newTopic, isEditMode, chapterId])
 
   const handleUpdate = (path, value) => {
     console.log("handleUpdate called with path:", path, "value:", value)
